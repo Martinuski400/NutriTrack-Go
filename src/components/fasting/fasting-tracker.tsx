@@ -11,7 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+// Remove Progress import as we are using SVG now
+// import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -32,6 +33,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // Define common fasting plans
 const fastingPlans = {
@@ -158,7 +160,13 @@ export default function FastingTracker() {
         const nextPhase: FastingPhase = currentPhase === 'fasting' ? 'eating' : 'fasting';
         setCurrentPhase(nextPhase);
         setPhaseStartTime(phaseEndTime); // Start the new phase exactly when the old one ended
-        // Don't set remaining time here, it will be calculated in the next interval
+
+         // Show notification for phase end
+         toast({
+           title: `Time's Up!`,
+           description: `Your ${currentPhase} phase has ended. Starting ${nextPhase} phase.`,
+         });
+
       } else {
         const hours = Math.floor(totalSecondsRemaining / 3600);
         const minutes = Math.floor((totalSecondsRemaining % 3600) / 60);
@@ -180,7 +188,7 @@ export default function FastingTracker() {
     return () => clearInterval(intervalId);
 
     // Exclude setRemainingTime and setProgress from deps as they are stable setters
-  }, [currentPhase, phaseStartTime, plan, isLoading]); // Re-run timer logic if these change
+  }, [currentPhase, phaseStartTime, plan, isLoading, toast]); // Added toast to dependency array
 
 
   const startFast = () => {
@@ -215,10 +223,10 @@ export default function FastingTracker() {
     };
     setPlan(updatedPlan);
 
-    // Optional: Decide if changing the plan should reset the current cycle
-    // stopCycle(); // Uncomment this to stop the cycle when settings change
+    // Optional: Reset the cycle when settings change to avoid confusion
+    stopCycle();
 
-    toast({ title: 'Settings Saved', description: `Fasting plan updated to ${newPlanDetails.label}.` });
+    toast({ title: 'Settings Saved', description: `Fasting plan updated to ${newPlanDetails.label}. Cycle stopped.` });
     setIsSettingsOpen(false); // Close the dialog
   };
 
@@ -239,7 +247,7 @@ export default function FastingTracker() {
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-lg">
+      <Card className="shadow-lg overflow-hidden"> {/* Added overflow hidden for consistency */}
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -263,7 +271,7 @@ export default function FastingTracker() {
                  <DialogHeader>
                    <DialogTitle>Fasting Settings</DialogTitle>
                    <DialogDescription>
-                     Choose your preferred fasting plan and eating window start time.
+                     Choose your preferred fasting plan and eating window start time. Changing settings will stop the current cycle.
                    </DialogDescription>
                  </DialogHeader>
                  <FastingSettingsForm currentPlan={plan} onSave={handleSaveSettings} />
@@ -272,12 +280,12 @@ export default function FastingTracker() {
              </Dialog>
            </div>
         </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-4">
+        <CardContent className="flex flex-col items-center space-y-4 py-8"> {/* Added padding */}
            {isLoading ? (
              <p>Loading timer...</p>
            ) : (
               <>
-                <div className="relative h-40 w-40"> {/* Container for progress circle */}
+                <div className="relative h-48 w-48"> {/* Increased size */}
                      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 36 36">
                         <path
                           className="text-muted" // Background circle color
@@ -289,10 +297,10 @@ export default function FastingTracker() {
                             a 15.9155 15.9155 0 0 1 0 -31.831"
                         />
                         <path
-                          className="text-primary" // Progress circle color
+                          className="text-primary transition-all duration-1000 ease-linear" // Added transition classes
                           stroke="currentColor"
                           strokeWidth="2"
-                          strokeDasharray={`${progress}, 100`}
+                          strokeDasharray={`${progress.toFixed(2)}, 100`} // Use toFixed for smoother animation
                           strokeLinecap="round"
                           fill="none"
                           transform="rotate(-90 18 18)" // Start from top
@@ -303,52 +311,52 @@ export default function FastingTracker() {
                       </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                         {currentPhase === 'idle' ? (
-                            <p className="text-lg font-semibold text-muted-foreground">Paused</p>
+                            <p className="text-2xl font-semibold text-muted-foreground animate-pulse">Paused</p> // Added animation
                         ) : (
                             <>
-                                <span className="text-3xl font-bold tabular-nums">
+                                <span className="text-4xl font-bold tabular-nums tracking-tight"> {/* Adjusted style */}
                                 {formatTime(remainingTime)}
                                 </span>
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-sm text-muted-foreground mt-1"> {/* Added margin */}
                                 {currentPhase === 'fasting' ? 'Until Eating' : 'Until Fasting'}
                                 </span>
                              </>
                         )}
                     </div>
                  </div>
-                {/* <Progress value={progress} aria-label={`${progress.toFixed(0)}% completed`} className="h-3 w-full max-w-xs" /> */}
+                {/* Removed explicit Progress component */}
               </>
            )}
         </CardContent>
-        <CardFooter className="flex justify-center gap-2">
+        <CardFooter className="flex justify-center gap-2 bg-muted/50 p-4"> {/* Added background and padding */}
           {isLoading ? (
-              <Button disabled>Loading...</Button>
+              <Button disabled size="lg" className="flex-grow">Loading...</Button> // Increased size
           ) : currentPhase === 'idle' ? (
-            <Button onClick={startFast} className="flex-grow">
-              <Play className="mr-2 h-4 w-4" /> Start Fast
+            <Button onClick={startFast} className="flex-grow" size="lg"> {/* Increased size */}
+              <Play className="mr-2 h-5 w-5" /> Start Fast
             </Button>
           ) : (
             <>
               {currentPhase === 'fasting' && (
-                <Button onClick={startEating} variant="secondary" className="flex-grow">
-                  <Play className="mr-2 h-4 w-4" /> Start Eating Window Early
+                <Button onClick={startEating} variant="secondary" className="flex-grow" size="lg"> {/* Increased size */}
+                  <Play className="mr-2 h-5 w-5" /> Start Eating Early
                 </Button>
               )}
                {currentPhase === 'eating' && (
-                 <Button onClick={startFast} variant="secondary" className="flex-grow">
-                   <Play className="mr-2 h-4 w-4" /> Start Fasting Early
+                 <Button onClick={startFast} variant="secondary" className="flex-grow" size="lg"> {/* Increased size */}
+                   <Play className="mr-2 h-5 w-5" /> Start Fasting Early
                  </Button>
                )}
-              <Button onClick={stopCycle} variant="destructive">
-                <RefreshCw className="mr-2 h-4 w-4" /> Stop Cycle
+              <Button onClick={stopCycle} variant="destructive" size="lg"> {/* Increased size */}
+                <RefreshCw className="mr-2 h-5 w-5" /> Stop Cycle
               </Button>
             </>
           )}
         </CardFooter>
       </Card>
 
-      {/* Can add history or tips section here later */}
-      {/* <Card> ... </Card> */}
+      {/* Potential Future: History or Tips */}
+      {/* <Card>...</Card> */}
     </div>
   );
 }
