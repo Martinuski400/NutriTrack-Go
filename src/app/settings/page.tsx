@@ -17,6 +17,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -32,13 +33,19 @@ const settingsSchema = z.object({
     .int()
     .positive('Goal must be a positive number.')
     .min(1, 'Goal must be at least 1 ml.'),
+  calorieGoal: z.coerce
+    .number({ invalid_type_error: 'Goal must be a number.' })
+    .int()
+    .positive('Goal must be a positive number.')
+    .min(1, 'Goal must be at least 1 kcal.'),
     // Add other settings here if needed
     // e.g., enableNotifications: z.boolean().default(false),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
 
-const DEFAULT_GOAL = 2000; // Default goal in ml
+const DEFAULT_WATER_GOAL = 2000; // Default goal in ml
+const DEFAULT_CALORIE_GOAL = 2000; // Default goal in kcal
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -47,16 +54,21 @@ export default function SettingsPage() {
    const form = useForm<SettingsForm>({
      resolver: zodResolver(settingsSchema),
      defaultValues: {
-       waterGoal: DEFAULT_GOAL,
+       waterGoal: DEFAULT_WATER_GOAL,
+       calorieGoal: DEFAULT_CALORIE_GOAL,
         // enableNotifications: false,
      },
    });
 
     // Load settings on mount
    React.useEffect(() => {
-     const savedGoal = localStorage.getItem('nutri_waterGoal');
-     if (savedGoal) {
-       form.setValue('waterGoal', parseInt(savedGoal, 10));
+     const savedWaterGoal = localStorage.getItem('nutri_waterGoal');
+     const savedCalorieGoal = localStorage.getItem('nutri_calorieGoal');
+     if (savedWaterGoal) {
+       form.setValue('waterGoal', parseInt(savedWaterGoal, 10));
+     }
+      if (savedCalorieGoal) {
+       form.setValue('calorieGoal', parseInt(savedCalorieGoal, 10));
      }
      // Load other settings if they exist
      setIsLoading(false);
@@ -65,12 +77,22 @@ export default function SettingsPage() {
 
   function onSubmit(values: SettingsForm) {
     // Save settings (e.g., to localStorage)
-    localStorage.setItem('nutri_waterGoal', values.waterGoal.toString());
-    // Save other settings
-    toast({
-      title: 'Settings Saved',
-      description: 'Your preferences have been updated.',
-    });
+    try {
+        localStorage.setItem('nutri_waterGoal', values.waterGoal.toString());
+        localStorage.setItem('nutri_calorieGoal', values.calorieGoal.toString());
+        // Save other settings
+        toast({
+        title: 'Settings Saved',
+        description: 'Your preferences have been updated.',
+        });
+    } catch (error) {
+         console.error("Failed to save settings to localStorage", error);
+         toast({
+            title: 'Save Error',
+            description: 'Could not save your settings.',
+            variant: 'destructive',
+         });
+    }
   }
 
   return (
@@ -79,8 +101,8 @@ export default function SettingsPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-          <CardDescription>Adjust your goals and settings.</CardDescription>
+          <CardTitle>Goals & Preferences</CardTitle>
+          <CardDescription>Adjust your daily targets and settings.</CardDescription>
         </CardHeader>
         <CardContent>
             {isLoading ? (
@@ -99,6 +121,23 @@ export default function SettingsPage() {
                        </FormControl>
                        <FormDescription>
                          Set your target daily water intake.
+                       </FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+
+                  <FormField
+                   control={form.control}
+                   name="calorieGoal"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Daily Calorie Goal (kcal)</FormLabel>
+                       <FormControl>
+                         <Input type="number" placeholder="e.g., 2000" {...field} value={field.value ?? ''}/>
+                       </FormControl>
+                       <FormDescription>
+                         Set your target daily calorie intake. This can also be calculated on the Profile page.
                        </FormDescription>
                        <FormMessage />
                      </FormItem>

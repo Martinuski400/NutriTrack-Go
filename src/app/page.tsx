@@ -1,5 +1,7 @@
+
 import { redirect } from 'next/navigation';
 
 export default function Home() {
-  redirect('/calories');
+  // Redirect to registration first, user can navigate from there
+  redirect('/register');
 }
