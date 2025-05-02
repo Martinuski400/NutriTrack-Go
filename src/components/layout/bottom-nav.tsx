@@ -7,7 +7,7 @@ import { Home, Settings, BookOpenCheck } from 'lucide-react'; // Simplified icon
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/home', label: 'Home', icon: Home }, // Consolidated Home link
+  { href: '/', label: 'Home', icon: Home }, // Changed href to '/'
   { href: '/recipes', label: 'Recipes', icon: BookOpenCheck },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -22,7 +22,7 @@ export default function BottomNav() {
         {navItems.map((item) => {
           // Check if the current path starts with the item's href for broader matching
           // Exact match for root pages
-           const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
+           const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href) && item.href !== '/'; // Ensure root isn't active for other pages
 
           return (
             <Link

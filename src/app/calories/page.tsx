@@ -66,11 +66,12 @@ export default function CaloriesPage() {
   const [totalCalories, setTotalCalories] = React.useState(0);
   const [calorieGoal, setCalorieGoal] = React.useState<number | null>(null); // Use null initially
   const [isLoading, setIsLoading] = React.useState(true);
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const [todayStr, setTodayStr] = React.useState('');
 
 
     // --- Persistence for Calendar ---
     const updateDailyCalorieRecord = (date: string, total: number, goal: number) => {
+      if (typeof window === 'undefined') return; // Ensure client-side
       const dailyRecords = JSON.parse(localStorage.getItem('nutri_daily_calories') || '{}');
       dailyRecords[date] = { total, goal };
       localStorage.setItem('nutri_daily_calories', JSON.stringify(dailyRecords));
@@ -80,52 +81,62 @@ export default function CaloriesPage() {
 
    // Load data on mount
    React.useEffect(() => {
+     if (typeof window === 'undefined') {
+         setIsLoading(false);
+         return;
+     }
+     const currentDateStr = format(new Date(), 'yyyy-MM-dd');
+     setTodayStr(currentDateStr);
+
      const savedEntries = localStorage.getItem('nutri_calorieEntries');
      const savedTotal = localStorage.getItem('nutri_calorieTotal');
      const savedGoal = localStorage.getItem('nutri_calorieGoal'); // Get goal from storage
      const lastEntryDate = localStorage.getItem('nutri_lastCalorieEntryDate');
 
-     if (lastEntryDate !== todayStr) {
+     let currentTotal = 0;
+     let currentEntries: LoggedEntry[] = [];
+
+     if (lastEntryDate !== currentDateStr) {
        // Reset entries and total if it's a new day
        localStorage.removeItem('nutri_calorieEntries');
        localStorage.removeItem('nutri_calorieTotal');
-       setLoggedEntries([]);
-       setTotalCalories(0);
-       localStorage.setItem('nutri_lastCalorieEntryDate', todayStr);
-       // Clear today's record before setting new one
-        updateDailyCalorieRecord(todayStr, 0, savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL);
+       localStorage.setItem('nutri_lastCalorieEntryDate', currentDateStr);
      } else {
        if (savedEntries) {
           const parsedEntries = JSON.parse(savedEntries);
           // Ensure loaded entries are only for today
-          setLoggedEntries(parsedEntries.filter((entry: LoggedEntry) => entry.date === todayStr));
+          currentEntries = parsedEntries.filter((entry: LoggedEntry) => entry.date === currentDateStr);
        }
        if (savedTotal) {
-         setTotalCalories(parseInt(savedTotal, 10));
+         currentTotal = parseInt(savedTotal, 10);
        }
      }
+
+     setLoggedEntries(currentEntries);
+     setTotalCalories(currentTotal);
 
      // Set goal from localStorage or default
      const currentGoal = savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL;
      setCalorieGoal(currentGoal);
       // Update today's record on initial load too
-     updateDailyCalorieRecord(todayStr, totalCalories, currentGoal);
+     updateDailyCalorieRecord(currentDateStr, currentTotal, currentGoal);
 
 
      setIsLoading(false);
-   }, []); // Removed totalCalories dependency to avoid loop on init
+   }, []); // Run once on mount
 
-   // Save data whenever entries or total change
+   // Save data whenever entries, total, or goal change
    React.useEffect(() => {
-     if (!isLoading && calorieGoal !== null) {
+      if (typeof window === 'undefined' || isLoading || !todayStr || calorieGoal === null) return; // Ensure client-side, loaded, and data ready
+
        // Filter entries to save only today's
        const todaysEntries = loggedEntries.filter(entry => entry.date === todayStr);
        localStorage.setItem('nutri_calorieEntries', JSON.stringify(todaysEntries));
        localStorage.setItem('nutri_calorieTotal', totalCalories.toString());
        // Save daily record for calendar
        updateDailyCalorieRecord(todayStr, totalCalories, calorieGoal);
-     }
-   }, [loggedEntries, totalCalories, calorieGoal, isLoading, todayStr]);
+
+   }, [loggedEntries, totalCalories, calorieGoal, isLoading, todayStr]); // Dependencies
 
   const form = useForm<CalorieEntry>({
     resolver: zodResolver(calorieEntrySchema),
@@ -138,6 +149,7 @@ export default function CaloriesPage() {
 
 
   function onSubmit(values: CalorieEntry) {
+    if (!todayStr) return; // Don't add if todayStr isn't set yet
     const newEntry: LoggedEntry = { ...values, id: Date.now().toString(), date: todayStr };
     setLoggedEntries((prev) => [newEntry, ...prev]);
     setTotalCalories((prev) => prev + values.calories);
@@ -152,7 +164,7 @@ export default function CaloriesPage() {
     const entryToDelete = loggedEntries.find((entry) => entry.id === id);
     if (entryToDelete) {
       setLoggedEntries((prev) => prev.filter((entry) => entry.id !== id));
-      setTotalCalories((prev) => prev - entryToDelete.calories);
+      setTotalCalories((prev) => Math.max(0, prev - entryToDelete.calories)); // Prevent negative total
       toast({
         title: 'Entry Deleted',
         description: `${entryToDelete.foodItem} removed.`,
@@ -168,7 +180,7 @@ export default function CaloriesPage() {
     <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding-bottom */}
       <div className="mb-4">
          <Button variant="outline" asChild>
-             <Link href="/home">← Back to Home</Link>
+             <Link href="/">← Back to Home</Link> {/* Changed Link to root */}
          </Button>
        </div>
       <h1 className="mb-6 text-center text-2xl font-bold">
@@ -183,13 +195,13 @@ export default function CaloriesPage() {
             <Target className="h-6 w-6 text-primary" />
           </CardTitle>
           <CardDescription>
-            Goal: {isLoading ? 'Loading...' : `${calorieGoal ?? 'Not set'} kcal`}
+            Goal: {isLoading || calorieGoal === null ? 'Loading...' : `${calorieGoal} kcal`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
            <Progress value={progressPercentage} aria-label={`${progressPercentage.toFixed(0)}% of daily calorie goal`} className="h-3" />
            <p className="text-center text-lg font-semibold">
-               {isLoading ? 'Loading...' : `${totalCalories} / ${calorieGoal ?? 'N/A'} kcal`}
+               {isLoading || calorieGoal === null ? 'Loading...' : `${totalCalories} / ${calorieGoal} kcal`}
            </p>
         </CardContent>
       </Card>
@@ -294,3 +306,4 @@ export default function CaloriesPage() {
     </div>
   );
 }
+
