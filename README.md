@@ -1,5 +1,4 @@
-# Firebase Studio
+# NutriTrack-Go
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+This is a Nutrient Track for your diets.
+This app doesn't have ads and its totally free.
