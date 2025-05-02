@@ -1,11 +1,10 @@
-
 'use client';
 
 import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Globe } from 'lucide-react'; // Import Globe icon
+import { Languages } from 'lucide-react'; // Import Languages icon
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+// Removed Switch import as it's no longer used in the simplified version
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -49,13 +48,13 @@ const activityLevels = {
 
 type ActivityLevelKey = keyof typeof activityLevels;
 
-// Language options
-const languages = {
-    en: { label: 'English', code: 'en' },
-    es: { label: 'Español', code: 'es' },
-    ca: { label: 'Català', code: 'ca' },
-} as const;
-type LanguageCode = keyof typeof languages;
+// Supported languages
+const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'es', label: 'Español' },
+    { code: 'ca', label: 'Català' },
+] as const;
+type LanguageCode = typeof languages[number]['code'];
 
 
 // Combined schema for settings and profile
@@ -66,7 +65,7 @@ const settingsSchema = z.object({
     .int()
     .positive('Age must be positive.')
     .min(1, 'Age must be at least 1.')
-    .optional(), // Make optional initially, prompt user if missing
+    .optional(),
   weight: z.coerce
     .number({ invalid_type_error: 'Weight must be a number.' })
     .positive('Weight must be positive.')
@@ -96,24 +95,22 @@ const settingsSchema = z.object({
     .int()
     .positive('Goal must be a positive number.')
     .min(1, 'Goal must be at least 1 kcal.'),
-
-  // Language field
-  language: z.enum(Object.keys(languages) as [LanguageCode, ...LanguageCode[]], {
-     required_error: 'Please select a language.'
-   }),
+  // Preferences
+  language: z.enum(languages.map(l => l.code) as [LanguageCode, ...LanguageCode[]]).default('en'),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
 
-const DEFAULT_WATER_GOAL = 2000; // Default goal in ml
-const DEFAULT_CALORIE_GOAL = 2000; // Default goal in kcal
-const DEFAULT_LANGUAGE: LanguageCode = 'en'; // Default language
+const DEFAULT_WATER_GOAL = 2000;
+const DEFAULT_CALORIE_GOAL = 2000;
+const DEFAULT_LANGUAGE: LanguageCode = 'en';
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(true);
   const [calculatedCalories, setCalculatedCalories] = React.useState<number | null>(null);
-  const [currentLanguage, setCurrentLanguage] = React.useState<LanguageCode>(DEFAULT_LANGUAGE); // State for language
+  const [currentLanguage, setCurrentLanguage] = React.useState<LanguageCode>(DEFAULT_LANGUAGE);
+
 
    const form = useForm<SettingsForm>({
      resolver: zodResolver(settingsSchema),
@@ -130,7 +127,7 @@ export default function SettingsPage() {
             const savedWaterGoal = localStorage.getItem('nutri_waterGoal');
             const savedCalorieGoal = localStorage.getItem('nutri_calorieGoal');
             const savedCalculatedGoal = localStorage.getItem('nutri_calculatedCalorieGoal');
-            const savedLanguage = localStorage.getItem('nutri_language'); // Load language
+            const savedLanguage = localStorage.getItem('nutri_language');
 
             if (savedProfile) {
                 try {
@@ -148,12 +145,12 @@ export default function SettingsPage() {
             if (savedCalculatedGoal) {
                 setCalculatedCalories(parseInt(savedCalculatedGoal, 10));
             }
-             // Set language, ensure it's a valid key
-            if (savedLanguage && languages[savedLanguage as LanguageCode]) {
+            if (savedLanguage && languages.some(l => l.code === savedLanguage)) {
                 language = savedLanguage as LanguageCode;
             }
+            setCurrentLanguage(language); // Update state for the select component
         }
-        setCurrentLanguage(language); // Update state
+
         setIsLoading(false);
         return {
             age: profileData.age,
@@ -163,10 +160,20 @@ export default function SettingsPage() {
             activityLevel: profileData.activityLevel,
             waterGoal: waterGoal,
             calorieGoal: calorieGoal,
-            language: language, // Set default language for form
+            language: language, // Set default form value for language
         }
      }
    });
+
+    // Update state when form language changes
+    React.useEffect(() => {
+        const subscription = form.watch((value, { name }) => {
+        if (name === 'language' && value.language) {
+            setCurrentLanguage(value.language);
+        }
+        });
+        return () => subscription.unsubscribe();
+    }, [form]);
 
 
   // Calculate TDEE function
@@ -185,7 +192,7 @@ export default function SettingsPage() {
   };
 
   function onSubmit(values: SettingsForm) {
-    // Recalculate TDEE based on current form values
+    // Recalculate TDEE
     const tdee = calculateTDEE(values);
     let calorieGoalToSave = values.calorieGoal;
 
@@ -198,7 +205,7 @@ export default function SettingsPage() {
     }
 
 
-    // Save profile and settings to localStorage
+    // Save profile, goals, and language to localStorage
     try {
         const profileToSave = {
             age: values.age,
@@ -212,26 +219,17 @@ export default function SettingsPage() {
         localStorage.setItem('nutri_calorieGoal', calorieGoalToSave.toString());
         localStorage.setItem('nutri_language', values.language); // Save language
 
-        setCurrentLanguage(values.language); // Update language state
-
         let toastDescription = `Preferences updated.`;
         if (tdee !== null) {
              toastDescription += ` Estimated daily need: ${tdee} kcal.`;
         }
-        // Inform user about language change (actual UI text won't change without full i18n)
-        toastDescription += ` Language set to ${languages[values.language].label}. Reload might be needed for full effect.`;
+        toastDescription += ` Language set to ${languages.find(l => l.code === values.language)?.label}.`; // Confirm language change
 
 
         toast({
-            title: 'Account Settings Saved', // Updated title
+            title: 'Settings Saved',
             description: toastDescription,
         });
-
-        // NOTE: Actual text translation requires a full localization setup (e.g., react-i18next).
-        // This just saves the preference.
-         // Optional: Force reload to apply changes if needed by localization library
-         // window.location.reload();
-
     } catch (error) {
          console.error("Failed to save settings to localStorage", error);
          toast({
@@ -266,7 +264,7 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto max-w-md p-4 pb-20">
-      <h1 className="mb-6 text-center text-2xl font-bold">Account & Profile</h1> {/* Updated Title */}
+      <h1 className="mb-6 text-center text-2xl font-bold">Account &amp; Settings</h1> {/* Updated title */}
 
       {isLoading ? (
             <Card className="shadow-lg">
@@ -274,7 +272,7 @@ export default function SettingsPage() {
                     <CardTitle>Loading...</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>Loading your account details...</p>
+                    <p>Loading your settings and profile...</p>
                 </CardContent>
             </Card>
         ) : (
@@ -393,7 +391,7 @@ export default function SettingsPage() {
                     </CardContent>
                      <CardFooter>
                          <Button type="button" variant="outline" onClick={handleRecalculateAndUpdateGoal} className="w-full">
-                             Recalculate Calorie Goal & Update Field
+                             Recalculate Calorie Goal &amp; Update Field
                          </Button>
                     </CardFooter>
                  </Card>
@@ -443,47 +441,49 @@ export default function SettingsPage() {
                     </CardContent>
                  </Card>
 
-                 {/* Preferences Section (Added Language) */}
+                 {/* Preferences Section */}
                  <Card className="shadow-lg">
                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2"> <Globe className="h-5 w-5" /> Preferences</CardTitle>
+                        <CardTitle>Preferences</CardTitle>
                      </CardHeader>
-                    <CardContent className="space-y-4">
-                         <FormField
+                    <CardContent>
+                        <FormField
                             control={form.control}
                             name="language"
                             render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Language</FormLabel>
+                            <FormItem>
+                                <FormLabel className="flex items-center gap-2">
+                                    <Languages className="h-4 w-4" /> App Language
+                                </FormLabel>
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
                                 >
-                                    <FormControl>
+                                <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select language" />
                                     </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {Object.entries(languages).map(([code, { label }]) => (
-                                        <SelectItem key={code} value={code}>
-                                        {label}
+                                </FormControl>
+                                <SelectContent>
+                                    {languages.map((lang) => (
+                                        <SelectItem key={lang.code} value={lang.code}>
+                                            {lang.label}
                                         </SelectItem>
                                     ))}
-                                    </SelectContent>
+                                </SelectContent>
                                 </Select>
                                 <FormDescription>
-                                    Choose the application language. (UI may need reload)
+                                    Choose the display language for the app. (Requires reload or dynamic text update)
                                 </FormDescription>
                                 <FormMessage />
-                                </FormItem>
+                            </FormItem>
                             )}
-                          />
+                        />
                     </CardContent>
                  </Card>
 
 
-                 <Button type="submit" className="w-full !mt-8">Save Account Settings</Button> {/* Updated Button Text */}
+                 <Button type="submit" className="w-full !mt-8">Save Settings &amp; Profile</Button>
                </form>
              </Form>
         )}

@@ -1,15 +1,14 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, BookOpenCheck } from 'lucide-react'; // Changed Settings to User
+import { Home, CircleUser, BookOpenCheck } from 'lucide-react'; // Changed Settings to CircleUser
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/recipes', label: 'Recipes', icon: BookOpenCheck },
-  { href: '/settings', label: 'Account', icon: User }, // Changed label and icon
+  { href: '/settings', label: 'Account', icon: CircleUser }, // Changed label and icon
 ];
 
 export default function BottomNav() {
@@ -48,4 +47,3 @@ export default function BottomNav() {
     </nav>
   );
 }
-
