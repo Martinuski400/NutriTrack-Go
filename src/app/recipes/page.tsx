@@ -27,10 +27,33 @@ export default function RecipesPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<RecipeCategory | null>(null);
-  const [recipes, setRecipes] = React.useState<Recipe[]>(sampleRecipes);
+  const [recipes, setRecipes] = React.useState<Recipe[]>([]); // Initialize empty
   const [selectedRecipe, setSelectedRecipe] = React.useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [showOnlyFavorites, setShowOnlyFavorites] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Load initial recipes and favorites from localStorage
+   React.useEffect(() => {
+     setIsLoading(true);
+     let loadedRecipes = [...sampleRecipes]; // Start with the base sample recipes
+     const savedFavorites = localStorage.getItem('nutri_favoriteRecipes');
+     if (savedFavorites) {
+       try {
+           const favoriteIds = JSON.parse(savedFavorites) as string[];
+           loadedRecipes = loadedRecipes.map(recipe => ({
+             ...recipe,
+             isFavorite: favoriteIds.includes(recipe.id),
+           }));
+       } catch (e) {
+           console.error("Error parsing favorite recipes:", e);
+           // Optionally clear corrupted data: localStorage.removeItem('nutri_favoriteRecipes');
+       }
+     }
+     setRecipes(loadedRecipes);
+     setIsLoading(false);
+   }, []);
+
 
   // Debounce search term
   React.useEffect(() => {
@@ -43,24 +66,20 @@ export default function RecipesPage() {
     };
   }, [searchTerm]);
 
-   // Load favorites from localStorage
-   React.useEffect(() => {
-     const savedFavorites = localStorage.getItem('nutri_favoriteRecipes');
-     if (savedFavorites) {
-       const favoriteIds = JSON.parse(savedFavorites) as string[];
-       setRecipes(prevRecipes =>
-         prevRecipes.map(recipe => ({
-           ...recipe,
-           isFavorite: favoriteIds.includes(recipe.id),
-         }))
-       );
-     }
-   }, []);
 
     // Save favorites to localStorage
     const saveFavorites = (updatedRecipes: Recipe[]) => {
-        const favoriteIds = updatedRecipes.filter(r => r.isFavorite).map(r => r.id);
-        localStorage.setItem('nutri_favoriteRecipes', JSON.stringify(favoriteIds));
+        try {
+            const favoriteIds = updatedRecipes.filter(r => r.isFavorite).map(r => r.id);
+            localStorage.setItem('nutri_favoriteRecipes', JSON.stringify(favoriteIds));
+        } catch (e) {
+            console.error("Error saving favorite recipes:", e);
+             toast({
+                 title: "Error Saving Favorites",
+                 description: "Could not save your favorites list.",
+                 variant: "destructive",
+             });
+        }
     };
 
     const toggleFavorite = (id: string) => {
@@ -85,21 +104,34 @@ export default function RecipesPage() {
 
 
   const filteredRecipes = React.useMemo(() => {
+    // Guard against filtering before recipes are loaded
+    if (isLoading) return [];
+
     return recipes.filter((recipe) => {
+      const searchLower = debouncedSearchTerm.toLowerCase();
       const matchesSearch = debouncedSearchTerm
-        ? recipe.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          recipe.ingredients.some(ing => ing.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+        ? recipe.name.toLowerCase().includes(searchLower) ||
+          recipe.ingredients.some(ing => ing.toLowerCase().includes(searchLower)) ||
+          recipe.cuisine?.toLowerCase().includes(searchLower) // Also search by cuisine
         : true;
       const matchesCategory = selectedCategory ? recipe.category === selectedCategory : true;
       const matchesFavorite = showOnlyFavorites ? recipe.isFavorite : true;
 
       return matchesSearch && matchesCategory && matchesFavorite;
     });
-  }, [recipes, debouncedSearchTerm, selectedCategory, showOnlyFavorites]);
+  }, [recipes, debouncedSearchTerm, selectedCategory, showOnlyFavorites, isLoading]);
 
 
-  const popularRecipes = filteredRecipes.filter(recipe => recipe.isPopular && recipe.category === (selectedCategory ?? recipe.category));
-  const quickRecipes = filteredRecipes.filter(recipe => recipe.isQuick && recipe.category === (selectedCategory ?? recipe.category));
+  // Separate filtering for popular and quick sections to always show them unless search/category is active
+   const popularRecipes = React.useMemo(() => {
+     if (isLoading) return [];
+     return recipes.filter(recipe => recipe.isPopular);
+   }, [recipes, isLoading]);
+
+   const quickRecipes = React.useMemo(() => {
+       if (isLoading) return [];
+       return recipes.filter(recipe => recipe.isQuick);
+   }, [recipes, isLoading]);
 
   const handleCategoryClick = (category: RecipeCategory) => {
     setSelectedCategory(prev => (prev === category ? null : category)); // Toggle selection
@@ -135,7 +167,7 @@ export default function RecipesPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search for a meal or ingredient"
+            placeholder="Search recipes, ingredients, cuisines..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -146,13 +178,10 @@ export default function RecipesPage() {
             size="icon"
             onClick={handleShowFavorites}
             aria-label={showOnlyFavorites ? "Show All Recipes" : "Show Favorite Recipes"}
-            className={cn(showOnlyFavorites && "text-red-500 border-red-500")} // Use theme colors
+            className={cn(showOnlyFavorites && "bg-destructive text-destructive-foreground hover:bg-destructive/90")} // Use theme colors more directly
         >
             <Heart className={cn("h-5 w-5", showOnlyFavorites && "fill-current")} />
          </Button>
-        {/* <Button variant="outline" size="icon" aria-label="Filter">
-          <Filter className="h-4 w-4" />
-        </Button> */}
       </div>
 
       {/* Category Filters */}
@@ -173,24 +202,29 @@ export default function RecipesPage() {
         <ScrollBar orientation="horizontal" />
        </ScrollArea>
 
+        {/* Loading State */}
+        {isLoading ? (
+            <p className="text-center text-muted-foreground mt-10">Loading recipes...</p>
+        ) :
 
-        {/* Display based on filters */}
-        {debouncedSearchTerm || selectedCategory || showOnlyFavorites ? (
+        /* Display based on filters */
+        (debouncedSearchTerm || selectedCategory || showOnlyFavorites) ? (
             // Show filtered results
              <div>
                 <h2 className="mb-3 text-lg font-semibold">
-                   {showOnlyFavorites ? "Favorite Recipes" :
-                   selectedCategory ? `${selectedCategory} Recipes` :
-                   `Search Results for "${debouncedSearchTerm}"`}
+                   {showOnlyFavorites ? `Favorite Recipes (${filteredRecipes.length})` :
+                   selectedCategory ? `${selectedCategory} Recipes (${filteredRecipes.length})` :
+                   `Search Results for "${debouncedSearchTerm}" (${filteredRecipes.length})`}
                 </h2>
                 {filteredRecipes.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredRecipes.map((recipe) => (
-                      <RecipeCard key={recipe.id} recipe={recipe} onToggleFavorite={toggleFavorite} onClick={() => openRecipeModal(recipe)} className="w-full"/> // Make cards full width within grid
-                    ))}
+                    // Use a more responsive grid
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {filteredRecipes.map((recipe) => (
+                        <RecipeCard key={recipe.id} recipe={recipe} onToggleFavorite={toggleFavorite} onClick={() => openRecipeModal(recipe)} className="w-full"/> // Make cards full width within grid
+                        ))}
                     </div>
                  ) : (
-                    <p className="text-center text-muted-foreground">No recipes found matching your criteria.</p>
+                    <p className="text-center text-muted-foreground mt-10">No recipes found matching your criteria.</p>
                  )}
              </div>
         ) : (
@@ -199,24 +233,22 @@ export default function RecipesPage() {
                  {/* Cuisines Section */}
                   <section className="mb-8">
                     <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg font-semibold">Cuisines</h2>
-                    {/* <Button variant="link" className="p-0 h-auto text-primary">See all</Button> */}
+                        <h2 className="text-lg font-semibold">Explore Cuisines</h2>
                     </div>
                     <ScrollArea className="w-full whitespace-nowrap">
-                    <div className="flex space-x-4 pb-3">
-                        {sampleCuisines.map((cuisine) => (
-                        <CuisineCard key={cuisine.name} cuisine={cuisine} />
-                        ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
+                        <div className="flex space-x-4 pb-3">
+                            {sampleCuisines.map((cuisine) => (
+                            <CuisineCard key={cuisine.name} cuisine={cuisine} />
+                            ))}
+                        </div>
+                        <ScrollBar orientation="horizontal" />
                     </ScrollArea>
                 </section>
 
                  {/* Popular Recipes Section */}
                  <section className="mb-8">
                     <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg font-semibold">Popular Recipes</h2>
-                    {/* <Button variant="link" className="p-0 h-auto text-primary">See all</Button> */}
+                        <h2 className="text-lg font-semibold">Popular Recipes</h2>
                     </div>
                      <ScrollArea className="w-full whitespace-nowrap">
                        <div className="flex space-x-4 pb-3">
@@ -225,7 +257,7 @@ export default function RecipesPage() {
                              <RecipeCard key={recipe.id} recipe={recipe} onToggleFavorite={toggleFavorite} onClick={() => openRecipeModal(recipe)} />
                            ))
                          ) : (
-                           <p className="text-muted-foreground pl-2">No popular recipes in this category.</p>
+                           <p className="text-muted-foreground pl-2">No popular recipes found.</p> // Adjusted text
                          )}
                        </div>
                        <ScrollBar orientation="horizontal" />
@@ -235,8 +267,7 @@ export default function RecipesPage() {
                   {/* Quick Meals Section */}
                   <section>
                     <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg font-semibold">10-Minute Meals</h2> {/* Changed title */}
-                    {/* <Button variant="link" className="p-0 h-auto text-primary">See all</Button> */}
+                         <h2 className="text-lg font-semibold">Quick & Easy Meals</h2> {/* Changed title */}
                     </div>
                       <ScrollArea className="w-full whitespace-nowrap">
                         <div className="flex space-x-4 pb-3">
@@ -245,7 +276,7 @@ export default function RecipesPage() {
                                 <RecipeCard key={recipe.id} recipe={recipe} onToggleFavorite={toggleFavorite} onClick={() => openRecipeModal(recipe)} />
                               ))
                             ) : (
-                              <p className="text-muted-foreground pl-2">No quick meals in this category.</p>
+                              <p className="text-muted-foreground pl-2">No quick meals found.</p> // Adjusted text
                             )}
                         </div>
                         <ScrollBar orientation="horizontal" />
@@ -282,17 +313,21 @@ export default function RecipesPage() {
                                 >
                                 <Heart className={cn("h-5 w-5", selectedRecipe.isFavorite && "fill-current")} />
                              </Button>
-                              <DialogClose
-                                onClick={closeRecipeModal}
-                                className="absolute top-4 right-4 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10 p-1 opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" // Consistent styling with favorite button
-                               >
-                                <X className="h-5 w-5" />
-                                <span className="sr-only">Close</span>
+                              <DialogClose asChild>
+                               <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={closeRecipeModal}
+                                    className="absolute top-4 right-4 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10 p-1 opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" // Consistent styling with favorite button
+                                >
+                                    <X className="h-5 w-5" />
+                                    <span className="sr-only">Close</span>
+                                </Button>
                               </DialogClose>
                          </div>
                          <div className="p-6"> {/* Add padding for text content */}
                             <DialogTitle className="text-2xl font-bold mb-1">{selectedRecipe.name}</DialogTitle>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 mb-3">
+                            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1 mb-3">
                                 <span className="flex items-center gap-1">
                                     <Clock className="h-4 w-4" />
                                     {selectedRecipe.duration} min
@@ -301,6 +336,16 @@ export default function RecipesPage() {
                                     <Flame className="h-4 w-4" />
                                     {selectedRecipe.calories} kcal
                                 </span>
+                                {selectedRecipe.cuisine && (
+                                    <span className="flex items-center gap-1 capitalize">
+                                         {/* Consider adding a cuisine icon if available */}
+                                        {selectedRecipe.cuisine}
+                                    </span>
+                                )}
+                                 <span className="flex items-center gap-1 capitalize">
+                                     {/* Consider adding a category icon */}
+                                    {selectedRecipe.category}
+                                 </span>
                             </div>
                              {selectedRecipe.description && (
                                  <DialogDescription className="text-base text-foreground/90"> {/* Slightly less muted */}
@@ -338,3 +383,5 @@ export default function RecipesPage() {
     </div>
   );
 }
+
+    

@@ -15,7 +15,7 @@ export interface Recipe {
     isFavorite?: boolean; // Added favorite status
 }
 
-// Sample Recipe Data - More can be added
+// Sample Recipe Data - Expanded Set
 export const sampleRecipes: Recipe[] = [
     {
       id: '1',
@@ -29,7 +29,7 @@ export const sampleRecipes: Recipe[] = [
         'Carefully remove the poached egg with a slotted spoon and place it on top of the avocado toast.',
         'Season with salt, pepper, and red pepper flakes if desired.'
       ],
-      imageUrl: 'https://picsum.photos/300/201', // Unique size for variation
+      imageUrl: 'https://picsum.photos/300/201',
       imageHint: 'avocado toast egg',
       duration: 15,
       calories: 308,
@@ -52,11 +52,12 @@ export const sampleRecipes: Recipe[] = [
         'Top with remaining 4 noodles, remaining meat sauce, and remaining mozzarella.',
         'Bake for 25-30 minutes, or until bubbly and cheese is melted and golden.'
       ],
-      imageUrl: 'https://picsum.photos/301/200', // Unique size
+      imageUrl: 'https://picsum.photos/301/200',
       imageHint: 'lasagna sheet pan',
       duration: 60,
-      calories: 550, // Approximation
+      calories: 550,
       category: 'Dinner',
+      cuisine: 'Italian',
       isPopular: true,
       isFavorite: false,
     },
@@ -71,10 +72,10 @@ export const sampleRecipes: Recipe[] = [
         'Add more milk if needed to reach desired consistency.',
         'Pour into a glass and serve immediately.'
       ],
-      imageUrl: 'https://picsum.photos/300/202', // Unique size
+      imageUrl: 'https://picsum.photos/300/202',
       imageHint: 'berry smoothie yogurt',
       duration: 5,
-      calories: 210, // Approximation
+      calories: 210,
       category: 'Snack',
       isQuick: true,
       isFavorite: false,
@@ -92,11 +93,12 @@ export const sampleRecipes: Recipe[] = [
           'Return chicken to the skillet. Add stir-fry sauce and toss to coat.',
           'Cook for 1-2 minutes more until heated through. Serve immediately, optionally with rice or noodles.'
       ],
-      imageUrl: 'https://picsum.photos/302/200', // Unique size
+      imageUrl: 'https://picsum.photos/302/200',
       imageHint: 'chicken stir fry vegetables',
       duration: 20,
-      calories: 400, // Approximation, without rice
+      calories: 400,
       category: 'Lunch',
+      cuisine: 'Chinese',
       isQuick: true,
       isFavorite: false,
     },
@@ -112,10 +114,10 @@ export const sampleRecipes: Recipe[] = [
           'Sprinkle the crumbled feta cheese over the top.',
           'Serve immediately or chill for later.'
       ],
-      imageUrl: 'https://picsum.photos/300/203', // Unique size
+      imageUrl: 'https://picsum.photos/300/203',
       imageHint: 'greek salad feta olives',
       duration: 15,
-      calories: 250, // Approximation
+      calories: 250,
       category: 'Lunch',
       cuisine: 'Mediterranean',
       isQuick: true,
@@ -135,10 +137,10 @@ export const sampleRecipes: Recipe[] = [
             'Season with salt to taste.',
             'Serve immediately, topped with grated Parmesan cheese if desired.'
         ],
-        imageUrl: 'https://picsum.photos/303/200', // Unique size
+        imageUrl: 'https://picsum.photos/303/200',
         imageHint: 'spaghetti pasta garlic oil',
         duration: 20,
-        calories: 480, // Approximation
+        calories: 480,
         category: 'Dinner',
         cuisine: 'Italian',
         isQuick: true,
@@ -156,10 +158,10 @@ export const sampleRecipes: Recipe[] = [
           'Warm taco shells according to package directions.',
           'Fill taco shells with beef mixture and desired toppings like lettuce, tomato, onion, cheese, and sour cream.'
       ],
-      imageUrl: 'https://picsum.photos/300/204', // Unique size
+      imageUrl: 'https://picsum.photos/300/204',
       imageHint: 'beef tacos cheese',
       duration: 25,
-      calories: 350, // Approximation per taco, varies with toppings
+      calories: 350,
       category: 'Dinner',
       cuisine: 'Mexican',
       isPopular: true,
@@ -176,14 +178,15 @@ export const sampleRecipes: Recipe[] = [
           'Place lemon halves, rosemary, thyme, and garlic inside the chicken cavity.',
           'Place chicken in a roasting pan. Rub olive oil all over the skin.',
           'Season generously with salt and pepper.',
-          'Roast for 1 hour and 15 minutes to 1 hour and 30 minutes, or until internal temperature reaches 165°F (74°C) in the thickest part of the thigh.',
+          'Roast for 1 hour 15 minutes to 1 hour 30 minutes, or until internal temperature reaches 165°F (74°C) in the thickest part of the thigh.',
           'Let chicken rest for 10-15 minutes before carving.'
       ],
-      imageUrl: 'https://picsum.photos/304/200', // Unique size
+      imageUrl: 'https://picsum.photos/304/200',
       imageHint: 'roasted chicken lemon herb',
       duration: 90,
-      calories: 600, // Approximation per serving
+      calories: 600,
       category: 'Dinner',
+      cuisine: 'American',
       isPopular: true,
       isFavorite: false,
     },
@@ -198,10 +201,10 @@ export const sampleRecipes: Recipe[] = [
           'Arrange skewers on a platter.',
           'Drizzle generously with balsamic glaze just before serving.'
       ],
-      imageUrl: 'https://picsum.photos/300/205', // Unique size
+      imageUrl: 'https://picsum.photos/300/205',
       imageHint: 'caprese skewers mozzarella basil',
       duration: 10,
-      calories: 150, // Approximation per few skewers
+      calories: 150,
       category: 'Snack',
       cuisine: 'Italian',
       isQuick: true,
@@ -221,14 +224,356 @@ export const sampleRecipes: Recipe[] = [
         'Season with salt and pepper to taste.',
         'Serve hot with desired toppings.'
       ],
-      imageUrl: 'https://picsum.photos/305/200', // Unique size
+      imageUrl: 'https://picsum.photos/305/200',
       imageHint: 'vegetarian chili beans',
       duration: 45,
-      calories: 380, // Approximation per serving
+      calories: 380,
       category: 'Dinner',
-      isPopular: false, // Example
+      cuisine: 'American',
+      isPopular: false,
       isFavorite: false,
     },
+    {
+      id: '11',
+      name: 'Banana Bread',
+      description: 'A moist and delicious banana bread, perfect for using up ripe bananas.',
+      ingredients: ['3 ripe bananas, mashed', '1/3 cup melted butter', '1/2 tsp baking soda', 'Pinch of salt', '3/4 cup sugar', '1 large egg, beaten', '1 tsp vanilla extract', '1 1/2 cups all-purpose flour'],
+      procedure: [
+          'Preheat oven to 350°F (175°C). Grease a 4x8 inch loaf pan.',
+          'In a mixing bowl, combine mashed bananas and melted butter.',
+          'Mix in the baking soda and salt. Stir in the sugar, beaten egg, and vanilla extract.',
+          'Mix in the flour until just combined.',
+          'Pour batter into the prepared loaf pan.',
+          'Bake for 50-60 minutes, or until a toothpick inserted into the center comes out clean.',
+          'Let cool in pan for a few minutes, then transfer to a wire rack to cool completely.'
+      ],
+      imageUrl: 'https://picsum.photos/300/206',
+      imageHint: 'banana bread loaf',
+      duration: 70,
+      calories: 320, // Per slice approx
+      category: 'Snack',
+      isFavorite: false,
+    },
+    {
+      id: '12',
+      name: 'Chicken Caesar Salad',
+      description: 'Classic Caesar salad topped with grilled chicken breast.',
+      ingredients: ['1 large romaine lettuce head, chopped', '2 boneless, skinless chicken breasts', '1 tbsp olive oil', 'Salt, pepper', 'Croutons', 'Caesar dressing', 'Grated Parmesan cheese'],
+      procedure: [
+          'Preheat grill or pan. Season chicken breasts with salt and pepper.',
+          'Brush chicken with olive oil and grill for 6-8 minutes per side, or until cooked through.',
+          'Let chicken rest, then slice.',
+          'In a large bowl, toss chopped romaine lettuce with Caesar dressing.',
+          'Add croutons and grated Parmesan cheese, toss again.',
+          'Top salad with sliced grilled chicken.',
+          'Serve immediately.'
+      ],
+      imageUrl: 'https://picsum.photos/306/200',
+      imageHint: 'chicken caesar salad',
+      duration: 30,
+      calories: 450,
+      category: 'Lunch',
+      cuisine: 'American',
+      isPopular: true,
+      isFavorite: false,
+    },
+    {
+      id: '13',
+      name: 'Pad Thai',
+      description: 'A popular Thai stir-fried noodle dish with a sweet and savory sauce.',
+      ingredients: ['8 oz rice noodles', '3 tbsp fish sauce', '1 tbsp tamarind paste', '1-3 tbsp sugar (to taste)', '1 tbsp lime juice', '2 tbsp vegetable oil', '8 oz firm tofu or shrimp/chicken', '2 cloves garlic, minced', '1 egg, lightly beaten', '1 cup bean sprouts', '1/4 cup chopped peanuts', '2 green onions, chopped', 'Lime wedges for serving'],
+      procedure: [
+          'Soak rice noodles according to package directions. Drain.',
+          'In a small bowl, whisk together fish sauce, tamarind paste, sugar, and lime juice for the sauce.',
+          'Heat oil in a wok or large skillet over medium-high heat. Add tofu/shrimp/chicken and garlic, stir-fry until cooked.',
+          'Push ingredients to one side. Add egg to the other side and scramble.',
+          'Add drained noodles and sauce to the wok. Toss everything together for 1-2 minutes until noodles are coated and tender.',
+          'Add half the bean sprouts and green onions, toss quickly.',
+          'Serve immediately, garnished with remaining bean sprouts, chopped peanuts, and lime wedges.'
+      ],
+      imageUrl: 'https://picsum.photos/300/207',
+      imageHint: 'pad thai noodles shrimp',
+      duration: 30,
+      calories: 520,
+      category: 'Dinner',
+      cuisine: 'Thai',
+      isPopular: true,
+      isFavorite: false,
+    },
+    {
+        id: '14',
+        name: 'Mango Lassi',
+        description: 'A refreshing Indian yogurt drink blended with sweet mangoes.',
+        ingredients: ['1 cup ripe mango chunks (fresh or frozen)', '1 cup plain yogurt', '1/2 cup milk', '2-4 tbsp sugar or honey (to taste)', 'Pinch of cardamom (optional)', 'Ice cubes (optional)'],
+        procedure: [
+            'Combine mango chunks, yogurt, milk, sugar/honey, and cardamom (if using) in a blender.',
+            'Blend until smooth and creamy.',
+            'If using fresh mango and want it chilled, add a few ice cubes and blend again.',
+            'Taste and adjust sweetness if needed.',
+            'Pour into glasses and serve immediately.'
+        ],
+        imageUrl: 'https://picsum.photos/307/200',
+        imageHint: 'mango lassi yogurt drink',
+        duration: 5,
+        calories: 250,
+        category: 'Drink',
+        cuisine: 'Indian',
+        isQuick: true,
+        isFavorite: false,
+    },
+    {
+        id: '15',
+        name: 'Hummus',
+        description: 'A creamy and smooth Middle Eastern dip made from chickpeas, tahini, lemon, and garlic.',
+        ingredients: ['1 (15 oz) can chickpeas, rinsed and drained (reserve some liquid)', '1/4 cup tahini', '1/4 cup fresh lemon juice', '1-2 cloves garlic, minced', '2 tbsp chickpea liquid or water', '2 tbsp olive oil', 'Salt to taste', 'Paprika and parsley for garnish (optional)'],
+        procedure: [
+            'Combine tahini and lemon juice in a food processor. Process for 1 minute, scraping down sides.',
+            'Add minced garlic and process for 30 seconds more.',
+            'Add half of the chickpeas and process until smooth.',
+            'Add the remaining chickpeas and process until very smooth, about 1-2 minutes.',
+            'With the food processor running, slowly stream in the chickpea liquid/water and olive oil until the hummus is smooth and creamy.',
+            'Season with salt to taste.',
+            'Transfer to a bowl, drizzle with more olive oil, and garnish with paprika and parsley if desired.',
+            'Serve with pita bread or vegetables.'
+        ],
+        imageUrl: 'https://picsum.photos/300/208',
+        imageHint: 'hummus chickpeas dip',
+        duration: 10,
+        calories: 180, // Per serving approx
+        category: 'Snack',
+        cuisine: 'Mediterranean',
+        isQuick: true,
+        isFavorite: false,
+    },
+    {
+        id: '16',
+        name: 'Oatmeal with Berries',
+        description: 'A simple and hearty bowl of oatmeal topped with fresh berries.',
+        ingredients: ['1/2 cup rolled oats', '1 cup water or milk', 'Pinch of salt', '1/2 cup mixed berries (fresh or frozen)', '1 tbsp nuts or seeds (optional)', '1 tsp honey or maple syrup (optional)'],
+        procedure: [
+            'Combine oats, water/milk, and salt in a small saucepan.',
+            'Bring to a boil, then reduce heat and simmer for 5-7 minutes, stirring occasionally, until thickened.',
+            'Pour oatmeal into a bowl.',
+            'Top with mixed berries, nuts/seeds, and sweetener if desired.',
+            'Serve warm.'
+        ],
+        imageUrl: 'https://picsum.photos/308/200',
+        imageHint: 'oatmeal berries breakfast',
+        duration: 10,
+        calories: 250,
+        category: 'Breakfast',
+        isQuick: true,
+        isFavorite: false,
+    },
+    {
+        id: '17',
+        name: 'French Onion Soup',
+        description: 'A classic French soup made with caramelized onions and topped with crusty bread and melted cheese.',
+        ingredients: ['4 large onions, thinly sliced', '4 tbsp butter', '1 tbsp olive oil', '1 tsp sugar', '1/2 cup dry white wine (optional)', '6 cups beef broth', 'Salt and pepper to taste', 'Baguette slices, toasted', 'Gruyère or Swiss cheese, shredded'],
+        procedure: [
+            'In a large pot or Dutch oven, melt butter and olive oil over medium heat.',
+            'Add sliced onions and sugar. Cook slowly, stirring occasionally, for 30-40 minutes, until deeply caramelized and golden brown.',
+            'If using wine, pour it in and scrape up any browned bits from the bottom of the pot. Let it simmer for a few minutes.',
+            'Pour in beef broth. Season with salt and pepper. Bring to a simmer and cook for at least 20 minutes.',
+            'Preheat broiler.',
+            'Ladle soup into oven-safe bowls.',
+            'Top each bowl with one or two slices of toasted baguette.',
+            'Sprinkle generously with shredded cheese.',
+            'Place bowls under the broiler for 2-3 minutes, or until cheese is melted and bubbly.',
+            'Serve carefully.'
+        ],
+        imageUrl: 'https://picsum.photos/300/209',
+        imageHint: 'french onion soup cheese',
+        duration: 75,
+        calories: 400,
+        category: 'Dinner',
+        cuisine: 'French',
+        isFavorite: false,
+    },
+    {
+        id: '18',
+        name: 'Guacamole',
+        description: 'A simple and fresh avocado dip, perfect with chips or as a topping.',
+        ingredients: ['3 ripe avocados', '1/2 small onion, finely chopped', '1-2 serrano or jalapeño peppers, minced (optional)', '1/4 cup chopped fresh cilantro', '1 lime, juiced', 'Salt to taste'],
+        procedure: [
+            'Cut avocados in half, remove pits, and scoop flesh into a bowl.',
+            'Mash the avocado with a fork, leaving some chunks for texture.',
+            'Add chopped onion, minced peppers (if using), and cilantro.',
+            'Squeeze lime juice over the mixture.',
+            'Season with salt to taste and stir gently to combine.',
+            'Serve immediately with tortilla chips or as desired.'
+        ],
+        imageUrl: 'https://picsum.photos/309/200',
+        imageHint: 'guacamole avocado dip',
+        duration: 10,
+        calories: 150, // Per serving approx
+        category: 'Snack',
+        cuisine: 'Mexican',
+        isQuick: true,
+        isPopular: true,
+        isFavorite: false,
+    },
+     {
+        id: '19',
+        name: 'Chocolate Chip Cookies',
+        description: 'Classic homemade chocolate chip cookies - chewy, soft, and delicious.',
+        ingredients: ['1 cup (2 sticks) unsalted butter, softened', '3/4 cup granulated sugar', '3/4 cup packed brown sugar', '2 large eggs', '1 tsp vanilla extract', '2 1/4 cups all-purpose flour', '1 tsp baking soda', '1/2 tsp salt', '2 cups semisweet chocolate chips'],
+        procedure: [
+            'Preheat oven to 375°F (190°C).',
+            'In a large bowl, cream together softened butter, granulated sugar, and brown sugar until smooth.',
+            'Beat in eggs one at a time, then stir in vanilla extract.',
+            'In a separate bowl, whisk together flour, baking soda, and salt.',
+            'Gradually add the dry ingredients to the wet ingredients, mixing until just combined.',
+            'Stir in the chocolate chips.',
+            'Drop rounded tablespoons of dough onto ungreased baking sheets.',
+            'Bake for 9-11 minutes, or until edges are golden brown.',
+            'Let cool on baking sheets for a few minutes before transferring to wire racks to cool completely.'
+        ],
+        imageUrl: 'https://picsum.photos/300/210',
+        imageHint: 'chocolate chip cookies',
+        duration: 30,
+        calories: 150, // Per cookie approx
+        category: 'Snack',
+        cuisine: 'American',
+        isPopular: true,
+        isFavorite: false,
+    },
+    {
+        id: '20',
+        name: 'Roasted Brussels Sprouts',
+        description: 'Crispy and flavorful roasted Brussels sprouts, a simple and healthy side dish.',
+        ingredients: ['1 lb Brussels sprouts, trimmed and halved', '2-3 tbsp olive oil', 'Salt and pepper to taste', 'Optional: Balsamic glaze, bacon bits, grated Parmesan'],
+        procedure: [
+            'Preheat oven to 400°F (200°C).',
+            'Toss Brussels sprouts with olive oil, salt, and pepper on a baking sheet.',
+            'Spread them in a single layer, cut-side down for better caramelization.',
+            'Roast for 20-25 minutes, flipping halfway through, until tender and edges are crispy and caramelized.',
+            'Optional: Toss with balsamic glaze, bacon bits, or Parmesan cheese before serving.',
+            'Serve hot.'
+        ],
+        imageUrl: 'https://picsum.photos/310/200',
+        imageHint: 'roasted brussels sprouts',
+        duration: 30,
+        calories: 120,
+        category: 'Side',
+        isQuick: true,
+        isFavorite: false,
+    },
+    {
+      id: '21',
+      name: 'Butternut Squash Soup',
+      description: 'A creamy and comforting soup made from roasted butternut squash.',
+      ingredients: ['1 medium butternut squash, peeled, seeded, and cubed', '1 tbsp olive oil', '1 onion, chopped', '2 carrots, chopped', '2 celery stalks, chopped', '4 cups vegetable or chicken broth', '1/2 tsp dried thyme', 'Salt and pepper to taste', 'Optional: Heavy cream or coconut milk for extra creaminess'],
+      procedure: [
+          'Preheat oven to 400°F (200°C). Toss butternut squash cubes with olive oil, salt, and pepper. Roast for 25-30 minutes until tender.',
+          'While squash is roasting, heat 1 tbsp olive oil in a large pot over medium heat. Add onion, carrots, and celery. Cook until softened, about 5-7 minutes.',
+          'Add roasted butternut squash, broth, and thyme to the pot.',
+          'Bring to a simmer, then reduce heat and cook for 15-20 minutes.',
+          'Carefully transfer the soup to a blender (in batches if necessary) or use an immersion blender to puree until smooth.',
+          'Return soup to the pot. If desired, stir in a splash of cream or coconut milk.',
+          'Season with salt and pepper to taste. Reheat gently if needed.',
+          'Serve hot.'
+      ],
+      imageUrl: 'https://picsum.photos/300/211',
+      imageHint: 'butternut squash soup creamy',
+      duration: 60,
+      calories: 200,
+      category: 'Dinner',
+      isFavorite: false,
+    },
+    {
+      id: '22',
+      name: 'Shrimp Scampi',
+      description: 'Quick and elegant pasta dish with shrimp sautéed in garlic butter sauce.',
+      ingredients: ['8 oz linguine or spaghetti', '1 lb large shrimp, peeled and deveined', '4 tbsp butter', '4 cloves garlic, minced', '1/4 cup dry white wine or chicken broth', '1/4 cup chopped fresh parsley', '1/2 lemon, juiced', 'Red pepper flakes to taste (optional)', 'Salt and pepper to taste'],
+      procedure: [
+          'Cook pasta according to package directions. Drain, reserving about 1/2 cup pasta water.',
+          'While pasta is cooking, melt butter in a large skillet over medium heat.',
+          'Add garlic and red pepper flakes (if using), cook until fragrant, about 1 minute.',
+          'Add shrimp and cook for 2-3 minutes per side, until pink and opaque. Do not overcook.',
+          'Pour in white wine or broth and bring to a simmer. Let it reduce slightly.',
+          'Stir in lemon juice and chopped parsley.',
+          'Add cooked pasta to the skillet. Toss to coat, adding reserved pasta water as needed to create a light sauce.',
+          'Season with salt and pepper to taste.',
+          'Serve immediately.'
+      ],
+      imageUrl: 'https://picsum.photos/311/200',
+      imageHint: 'shrimp scampi pasta garlic',
+      duration: 25,
+      calories: 500,
+      category: 'Dinner',
+      cuisine: 'Italian',
+      isQuick: true,
+      isPopular: true,
+      isFavorite: false,
+    },
+     {
+        id: '23',
+        name: 'Breakfast Burrito',
+        description: 'A hearty and customizable breakfast wrap with eggs, cheese, and your favorite fillings.',
+        ingredients: ['2 large eggs, scrambled', '1 large flour tortilla', '1/4 cup shredded cheese (cheddar, Monterey Jack)', '2 tbsp cooked sausage or bacon bits (optional)', '2 tbsp black beans or potatoes (optional)', 'Salsa or hot sauce (optional)'],
+        procedure: [
+            'Warm the tortilla slightly in a dry skillet or microwave to make it pliable.',
+            'Layer cheese, scrambled eggs, and optional fillings (sausage, bacon, beans, potatoes) down the center of the tortilla.',
+            'Fold in the sides of the tortilla.',
+            'Fold up the bottom flap over the filling.',
+            'Roll the tortilla tightly from the bottom up.',
+            'Optional: Place the burrito seam-side down in a hot skillet for a minute or two to seal and crisp the outside.',
+            'Serve immediately with salsa or hot sauce if desired.'
+        ],
+        imageUrl: 'https://picsum.photos/300/212',
+        imageHint: 'breakfast burrito egg cheese',
+        duration: 10,
+        calories: 450,
+        category: 'Breakfast',
+        cuisine: 'Mexican',
+        isQuick: true,
+        isFavorite: false,
+    },
+    {
+        id: '24',
+        name: 'Apple Crisp',
+        description: 'Warm baked apples topped with a sweet and crunchy oat crumble.',
+        ingredients: [
+            'Filling: 4-5 medium apples (like Honeycrisp or Granny Smith), peeled, cored, and sliced', '1 tbsp lemon juice', '1/4 cup sugar', '1 tsp cinnamon',
+            'Topping: 1 cup rolled oats', '1/2 cup all-purpose flour', '1/2 cup brown sugar', '1/4 tsp salt', '1/2 cup (1 stick) cold unsalted butter, cut into pieces'
+        ],
+        procedure: [
+            'Preheat oven to 375°F (190°C).',
+            'In a bowl, toss sliced apples with lemon juice, sugar, and cinnamon. Spread evenly in a baking dish (approx 8x8 inch).',
+            'In a separate bowl, combine oats, flour, brown sugar, and salt for the topping.',
+            'Cut in the cold butter pieces using a pastry blender, forks, or your fingers until the mixture resembles coarse crumbs.',
+            'Sprinkle the topping evenly over the apples.',
+            'Bake for 30-40 minutes, or until the topping is golden brown and the apples are tender and bubbly.',
+            'Let cool slightly before serving. Delicious served warm with vanilla ice cream.'
+        ],
+        imageUrl: 'https://picsum.photos/312/200',
+        imageHint: 'apple crisp dessert oat topping',
+        duration: 50,
+        calories: 380, // Per serving approx
+        category: 'Snack', // Or Dessert
+        isFavorite: false,
+    },
+    {
+        id: '25',
+        name: 'Iced Coffee',
+        description: 'A simple way to make refreshing iced coffee at home.',
+        ingredients: ['1 cup strong brewed coffee, cooled or room temperature', '1/2 cup milk or cream (optional)', '1-2 tsp sugar or sweetener (optional)', 'Ice cubes'],
+        procedure: [
+            'Brew strong coffee using your preferred method (drip, French press, cold brew). Let it cool completely.',
+            'Fill a glass with ice cubes.',
+            'Pour the cooled coffee over the ice.',
+            'If desired, add milk/cream and sugar/sweetener.',
+            'Stir well and enjoy immediately.'
+        ],
+        imageUrl: 'https://picsum.photos/300/213',
+        imageHint: 'iced coffee milk',
+        duration: 5, // Plus cooling time for coffee
+        calories: 50, // Highly variable depending on additions
+        category: 'Drink',
+        isQuick: true,
+        isFavorite: false,
+    }
     // Add many more recipes here...
 ];
 
@@ -242,8 +587,11 @@ export const sampleCuisines = [
     { name: 'American', imageUrl: 'https://picsum.photos/153/100', imageHint: 'american food burger fries' },
     { name: 'Japanese', imageUrl: 'https://picsum.photos/150/104', imageHint: 'japanese food sushi ramen' },
     { name: 'Thai', imageUrl: 'https://picsum.photos/154/100', imageHint: 'thai food green curry pad thai' },
+    { name: 'French', imageUrl: 'https://picsum.photos/150/105', imageHint: 'french food croissant pastry' }, // Added French
     // Add more cuisines
 ];
 
 export const recipeCategories = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink', 'Side'] as const;
 export type RecipeCategory = typeof recipeCategories[number];
+
+    

@@ -24,7 +24,8 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
 
   return (
     <Card
-        className={cn("w-[250px] shrink-0 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer", className)}
+        // Adjusted base width, shrink-0 prevents shrinking in flexbox, w-full ensures it takes grid width
+        className={cn("w-full sm:w-[250px] shrink-0 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer", className)}
         onClick={onClick} // Add onClick to the card
         role="button" // Add role for accessibility
         aria-label={`View recipe details for ${recipe.name}`} // Add aria-label
@@ -32,21 +33,23 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }} // Allow activation with keyboard
         >
       <CardHeader className="p-0 relative">
+        {/* Ensure image takes full card width */}
         <Image
           src={recipe.imageUrl}
           alt={recipe.name}
-          width={250}
-          height={150}
+          width={250} // Base width, layout adjusts this
+          height={150} // Maintain aspect ratio
           className="aspect-[3/2] object-cover w-full"
           data-ai-hint={recipe.imageHint} // Use imageHint here
           priority={recipe.isPopular} // Prioritize loading popular recipe images slightly
+          unoptimized // Since using picsum, disable Next.js optimization which might not work well with it
         />
          <Button
             variant="ghost"
             size="icon"
             className={cn(
-                "absolute top-2 right-2 rounded-full bg-black/30 hover:bg-black/50 text-white",
-                recipe.isFavorite && "text-red-500 bg-black/50" // Style for favorited
+                "absolute top-2 right-2 rounded-full bg-black/40 hover:bg-black/50 text-white backdrop-blur-sm", // Added backdrop blur
+                recipe.isFavorite && "text-destructive bg-black/50" // Use theme destructive color
                 )}
             onClick={handleFavoriteClick}
             aria-label={recipe.isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -55,8 +58,8 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
          </Button>
       </CardHeader>
       <CardContent className="p-3">
-        <CardTitle className="text-base font-semibold leading-tight mb-1 truncate">{recipe.name}</CardTitle>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <CardTitle className="text-base font-semibold leading-tight mb-1 truncate" title={recipe.name}>{recipe.name}</CardTitle>
+        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground"> {/* Allow wrapping */}
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {recipe.duration} min
@@ -65,12 +68,16 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
             <Flame className="h-3 w-3" />
             {recipe.calories} kcal
           </span>
+          {/* Optionally show category/cuisine badge */}
+          {/* <Badge variant="outline" className="text-xs capitalize">{recipe.category}</Badge> */}
         </div>
       </CardContent>
-      {/* Optional: Add a footer for tags or quick actions if needed later
+      {/* Optional Footer can be added back if needed
       <CardFooter className="p-3 pt-0">
          {recipe.isQuick && <Badge variant="secondary">Quick</Badge>}
       </CardFooter> */}
     </Card>
   );
 }
+
+    
