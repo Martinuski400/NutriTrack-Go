@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Utensils, GlassWater, Settings, User } from 'lucide-react'; // Added User icon
+import { Utensils, GlassWater, Settings, User, BookOpenCheck } from 'lucide-react'; // Added User and BookOpenCheck icons
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/calories', label: 'Calories', icon: Utensils },
   { href: '/water', label: 'Water', icon: GlassWater },
-  { href: '/register', label: 'Profile', icon: User }, // Added Profile/Register link
+  { href: '/recipes', label: 'Recipes', icon: BookOpenCheck }, // Added Recipes link
+  { href: '/register', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -17,9 +18,9 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background shadow-md">
-      <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center justify-around px-1"> {/* Adjusted grid columns and padding */}
         {navItems.map((item) => {
-          // Check if the current path starts with the item's href for broader matching (e.g., /settings/subpage)
+          // Check if the current path starts with the item's href for broader matching
           // Exact match for root pages like '/calories', '/water', '/register'
            const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
 
@@ -28,7 +29,7 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 px-2 text-xs transition-colors', // Added horizontal padding
+                'flex flex-col items-center justify-center gap-1 px-1 text-center text-[10px] transition-colors sm:text-xs', // Adjusted padding, text size
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -38,7 +39,8 @@ export default function BottomNav() {
                 className="h-5 w-5"
                 aria-hidden="true"
               />
-              <span className="mt-1">{item.label}</span>
+              {/* Ensure label doesn't wrap too awkwardly on small screens */}
+              <span className="mt-1 block max-w-full truncate">{item.label}</span>
             </Link>
           );
         })}

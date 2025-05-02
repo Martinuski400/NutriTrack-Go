@@ -3,35 +3,36 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; /* iOS style font stack */
 }
 
 @layer base {
   :root {
+    /* Light Theme - Adjusted slightly based on image */
     --background: 0 0% 100%; /* White */
-    --foreground: 240 10% 3.9%; /* Dark Gray */
+    --foreground: 222.2 84% 4.9%; /* Dark Blue-Gray */
     --card: 0 0% 100%; /* White */
-    --card-foreground: 240 10% 3.9%; /* Dark Gray */
+    --card-foreground: 222.2 84% 4.9%; /* Dark Blue-Gray */
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 240 10% 3.9%; /* Dark Gray */
-    --primary: 180 100% 25.1%; /* Teal */
-    --primary-foreground: 0 0% 98%; /* Light Gray/White */
-    --secondary: 0 0% 96.1%; /* Light Gray */
-    --secondary-foreground: 240 5.9% 10%; /* Dark Gray */
-    --muted: 0 0% 96.1%; /* Light Gray */
-    --muted-foreground: 240 5% 64.9%; /* Medium Gray */
-    --accent: 38.8 100% 50%; /* Orange */
-    --accent-foreground: 0 0% 9%; /* Dark Gray/Black for contrast on Orange */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%; /* Light Gray Border */
-    --input: 0 0% 89.8%; /* Light Gray Input Border */
-    --ring: 180 100% 25.1%; /* Teal for focus rings */
-    --chart-1: 180 76% 61%; /* Teal variations for charts */
-    --chart-2: 180 58% 39%;
-    --chart-3: 180 37% 24%;
-    --chart-4: 38.8 74% 66%; /* Orange variations for charts */
-    --chart-5: 38.8 87% 67%;
+    --popover-foreground: 222.2 84% 4.9%; /* Dark Blue-Gray */
+    --primary: 210 100% 56.1%; /* Bright Blue */
+    --primary-foreground: 0 0% 98%; /* Almost White */
+    --secondary: 210 40% 96.1%; /* Light Grayish Blue */
+    --secondary-foreground: 222.2 47.4% 11.2%; /* Dark Blue */
+    --muted: 210 40% 96.1%; /* Light Grayish Blue */
+    --muted-foreground: 215 20.2% 65.1%; /* Medium Grayish Blue */
+    --accent: 48 96% 61%; /* Yellow/Orange */
+    --accent-foreground: 48 96% 10%; /* Dark Brown for contrast on Yellow */
+    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive-foreground: 0 0% 98%; /* Almost White */
+    --border: 214.3 31.8% 91.4%; /* Light Gray Border */
+    --input: 214.3 31.8% 91.4%; /* Light Gray Input Border */
+    --ring: 210 100% 56.1%; /* Bright Blue for focus rings */
+    --chart-1: 210 76% 61%; /* Blue variations for charts */
+    --chart-2: 210 58% 39%;
+    --chart-3: 210 37% 24%;
+    --chart-4: 48 74% 66%; /* Yellow variations for charts */
+    --chart-5: 48 87% 67%;
     --radius: 0.5rem;
     /* Sidebar vars remain for potential future use, but unused by bottom nav */
     --sidebar-background: 0 0% 98%;
@@ -44,31 +45,31 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    /* Define dark theme variables if needed, for now focus on light theme */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 180 100% 35%; /* Darker Teal */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%; /* Dark Gray */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%; /* Dark Gray */
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 38.8 100% 60%; /* Lighter Orange */
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%; /* Dark Gray Border */
-    --input: 240 3.7% 15.9%; /* Dark Gray Input Border */
-    --ring: 180 100% 35%; /* Darker Teal Ring */
-    --chart-1: 180 70% 50%;
-    --chart-2: 180 60% 45%;
-    --chart-3: 180 80% 55%;
-    --chart-4: 38.8 65% 60%;
-    --chart-5: 38.8 75% 55%;
+    /* Dark Theme - Adjusted slightly based on image */
+    --background: 222.2 84% 4.9%; /* Very Dark Blue */
+    --foreground: 210 40% 98%; /* Almost White */
+    --card: 222.2 84% 6.9%; /* Slightly Lighter Dark Blue */
+    --card-foreground: 210 40% 98%; /* Almost White */
+    --popover: 222.2 84% 4.9%; /* Very Dark Blue */
+    --popover-foreground: 210 40% 98%; /* Almost White */
+    --primary: 210 100% 56.1%; /* Bright Blue */
+    --primary-foreground: 222.2 47.4% 11.2%; /* Dark Blue */
+    --secondary: 217.2 32.6% 17.5%; /* Dark Grayish Blue */
+    --secondary-foreground: 210 40% 98%; /* Almost White */
+    --muted: 217.2 32.6% 17.5%; /* Dark Grayish Blue */
+    --muted-foreground: 215 20.2% 65.1%; /* Medium Grayish Blue */
+    --accent: 48 96% 61%; /* Yellow/Orange */
+    --accent-foreground: 48 96% 10%; /* Dark Brown */
+    --destructive: 0 62.8% 50.6%; /* Brighter Red */
+    --destructive-foreground: 0 0% 98%; /* Almost White */
+    --border: 217.2 32.6% 17.5%; /* Dark Grayish Blue Border */
+    --input: 217.2 32.6% 17.5%; /* Dark Grayish Blue Input Border */
+    --ring: 210 100% 56.1%; /* Bright Blue Ring */
+    --chart-1: 210 70% 50%;
+    --chart-2: 210 60% 45%;
+    --chart-3: 210 80% 55%;
+    --chart-4: 48 65% 60%;
+    --chart-5: 48 75% 55%;
      /* Sidebar vars remain for potential future use, but unused by bottom nav */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -89,3 +90,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Additional global styles for layout */
+ main {
+    padding-bottom: 5rem; /* Ensure enough space for bottom nav */
+ }
