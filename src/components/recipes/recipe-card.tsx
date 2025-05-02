@@ -1,3 +1,4 @@
+// src/components/recipes/recipe-card.tsx
 'use client';
 
 import * as React from 'react';
@@ -37,12 +38,12 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
         <Image
           src={recipe.imageUrl}
           alt={recipe.name}
-          width={250} // Base width, layout adjusts this
-          height={150} // Maintain aspect ratio
+          width={300} // Adjusted width for card display consistency
+          height={200} // Adjust height to match aspect ratio
           className="aspect-[3/2] object-cover w-full"
           data-ai-hint={recipe.imageHint} // Use imageHint here
           priority={recipe.isPopular} // Prioritize loading popular recipe images slightly
-          unoptimized // Since using picsum, disable Next.js optimization which might not work well with it
+          // Removed unoptimized prop, let Next.js handle optimization if possible
         />
          <Button
             variant="ghost"
@@ -68,6 +69,11 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
             <Flame className="h-3 w-3" />
             {recipe.calories} kcal
           </span>
+           {/* Display original servings */}
+           <span className="flex items-center gap-1">
+             <Users className="h-3 w-3" />
+             {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}
+           </span>
           {/* Optionally show category/cuisine badge */}
           {/* <Badge variant="outline" className="text-xs capitalize">{recipe.category}</Badge> */}
         </div>
@@ -79,5 +85,3 @@ export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: Rec
     </Card>
   );
 }
-
-    

@@ -7,7 +7,8 @@ export interface Recipe {
     imageUrl: string;
     imageHint: string; // Keywords for image search
     duration: number; // minutes
-    calories: number;
+    calories: number; // Per serving
+    servings: number; // Number of people the recipe serves
     cuisine?: string;
     category: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Drink' | 'Side';
     isPopular?: boolean;
@@ -29,10 +30,11 @@ export const sampleRecipes: Recipe[] = [
         'Carefully remove the poached egg with a slotted spoon and place it on top of the avocado toast.',
         'Season with salt, pepper, and red pepper flakes if desired.'
       ],
-      imageUrl: 'https://picsum.photos/300/201',
-      imageHint: 'avocado toast egg',
+      imageUrl: 'https://picsum.photos/600/400', // Larger image
+      imageHint: 'avocado toast poached egg breakfast', // More specific hint
       duration: 15,
       calories: 308,
+      servings: 1, // Added servings
       category: 'Breakfast',
       isPopular: true,
       isQuick: true,
@@ -42,7 +44,7 @@ export const sampleRecipes: Recipe[] = [
       id: '2',
       name: 'Easy Sheet Pan Lasagna',
       description: 'A simplified lasagna baked on a sheet pan, offering layers of flavor without the traditional layering hassle.',
-      ingredients: ['1 lb ground beef', '1 onion, chopped', '2 cloves garlic, minced', '1 (24 oz) jar marinara sauce', '1 (15 oz) container ricotta cheese', '1 egg', '1/4 cup grated Parmesan cheese', '1 tsp Italian seasoning', '12 lasagna noodles, cooked', '2 cups shredded mozzarella cheese'],
+      ingredients: ['1 lb ground beef', '1 onion, chopped', '2 cloves garlic, minced', '1 (24 oz) jar marinara sauce', '1 (15 oz) container ricotta cheese', '1 large egg', '1/4 cup grated Parmesan cheese', '1 tsp Italian seasoning', '12 lasagna noodles, cooked', '2 cups shredded mozzarella cheese'],
       procedure: [
         'Preheat oven to 375°F (190°C). Grease a large baking sheet.',
         'In a skillet, brown the ground beef with onion and garlic. Drain fat. Stir in marinara sauce.',
@@ -52,10 +54,11 @@ export const sampleRecipes: Recipe[] = [
         'Top with remaining 4 noodles, remaining meat sauce, and remaining mozzarella.',
         'Bake for 25-30 minutes, or until bubbly and cheese is melted and golden.'
       ],
-      imageUrl: 'https://picsum.photos/301/200',
-      imageHint: 'lasagna sheet pan',
+      imageUrl: 'https://picsum.photos/601/400',
+      imageHint: 'sheet pan lasagna ricotta mozzarella', // More specific hint
       duration: 60,
       calories: 550,
+      servings: 6, // Added servings
       category: 'Dinner',
       cuisine: 'Italian',
       isPopular: true,
@@ -65,17 +68,18 @@ export const sampleRecipes: Recipe[] = [
       id: '3',
       name: 'Quick Berry Smoothie',
       description: 'A refreshing and quick smoothie packed with mixed berries, perfect for a fast breakfast or snack.',
-      ingredients: ['1 cup frozen mixed berries', '1/2 cup yogurt (plain or vanilla)', '1/2 cup milk (any kind)', '1 tbsp honey or maple syrup (optional)'],
+      ingredients: ['1 cup frozen mixed berries', '1/2 cup plain yogurt', '1/2 cup milk', '1 tbsp honey or maple syrup (optional)'],
       procedure: [
         'Combine all ingredients in a blender.',
         'Blend until smooth.',
         'Add more milk if needed to reach desired consistency.',
         'Pour into a glass and serve immediately.'
       ],
-      imageUrl: 'https://picsum.photos/300/202',
-      imageHint: 'berry smoothie yogurt',
+      imageUrl: 'https://picsum.photos/600/401',
+      imageHint: 'berry smoothie yogurt drink', // More specific hint
       duration: 5,
       calories: 210,
+      servings: 1, // Added servings
       category: 'Snack',
       isQuick: true,
       isFavorite: false,
@@ -93,10 +97,11 @@ export const sampleRecipes: Recipe[] = [
           'Return chicken to the skillet. Add stir-fry sauce and toss to coat.',
           'Cook for 1-2 minutes more until heated through. Serve immediately, optionally with rice or noodles.'
       ],
-      imageUrl: 'https://picsum.photos/302/200',
-      imageHint: 'chicken stir fry vegetables',
+      imageUrl: 'https://picsum.photos/602/400',
+      imageHint: 'chicken stir fry mixed vegetables wok', // More specific hint
       duration: 20,
       calories: 400,
+      servings: 2, // Added servings
       category: 'Lunch',
       cuisine: 'Chinese',
       isQuick: true,
@@ -114,10 +119,11 @@ export const sampleRecipes: Recipe[] = [
           'Sprinkle the crumbled feta cheese over the top.',
           'Serve immediately or chill for later.'
       ],
-      imageUrl: 'https://picsum.photos/300/203',
-      imageHint: 'greek salad feta olives',
+      imageUrl: 'https://picsum.photos/600/403',
+      imageHint: 'greek salad feta olives cucumber tomato', // More specific hint
       duration: 15,
       calories: 250,
+      servings: 2, // Added servings
       category: 'Lunch',
       cuisine: 'Mediterranean',
       isQuick: true,
@@ -127,7 +133,7 @@ export const sampleRecipes: Recipe[] = [
         id: '6',
         name: 'Spaghetti Aglio e Olio',
         description: 'A simple yet incredibly flavorful pasta dish featuring garlic, olive oil, and a hint of red pepper flakes.',
-        ingredients: ['8 oz spaghetti', '1/4 cup olive oil', '4-6 cloves garlic, thinly sliced', '1/4 tsp red pepper flakes (or to taste)', '2 tbsp chopped fresh parsley', 'Salt to taste', 'Grated Parmesan cheese (optional, for serving)'],
+        ingredients: ['8 oz spaghetti', '1/4 cup olive oil', '6 cloves garlic, thinly sliced', '1/4 tsp red pepper flakes (or to taste)', '2 tbsp chopped fresh parsley', 'Salt to taste', 'Grated Parmesan cheese (optional, for serving)'],
         procedure: [
             'Cook spaghetti according to package directions. Reserve about 1/2 cup of pasta water before draining.',
             'While pasta is cooking, heat olive oil in a large skillet over medium-low heat.',
@@ -137,10 +143,11 @@ export const sampleRecipes: Recipe[] = [
             'Season with salt to taste.',
             'Serve immediately, topped with grated Parmesan cheese if desired.'
         ],
-        imageUrl: 'https://picsum.photos/303/200',
-        imageHint: 'spaghetti pasta garlic oil',
+        imageUrl: 'https://picsum.photos/603/400',
+        imageHint: 'spaghetti aglio olio garlic oil pasta', // More specific hint
         duration: 20,
         calories: 480,
+        servings: 2, // Added servings
         category: 'Dinner',
         cuisine: 'Italian',
         isQuick: true,
@@ -150,7 +157,7 @@ export const sampleRecipes: Recipe[] = [
       id: '7',
       name: 'Classic Beef Tacos',
       description: 'Flavorful ground beef filling served in crispy taco shells with your favorite toppings.',
-      ingredients: ['1 lb ground beef', '1 packet taco seasoning', '3/4 cup water', '12 hard taco shells', 'Lettuce, shredded', 'Tomato, diced', 'Onion, diced', 'Shredded cheddar cheese', 'Sour cream'],
+      ingredients: ['1 lb ground beef', '1 packet taco seasoning', '3/4 cup water', '12 hard taco shells', 'Lettuce, shredded', 'Tomato, diced', 'Onion, diced', '1 cup Shredded cheddar cheese', 'Sour cream'],
       procedure: [
           'In a large skillet, cook ground beef over medium-high heat until browned. Drain excess fat.',
           'Stir in taco seasoning and water. Bring to a simmer.',
@@ -158,10 +165,11 @@ export const sampleRecipes: Recipe[] = [
           'Warm taco shells according to package directions.',
           'Fill taco shells with beef mixture and desired toppings like lettuce, tomato, onion, cheese, and sour cream.'
       ],
-      imageUrl: 'https://picsum.photos/300/204',
-      imageHint: 'beef tacos cheese',
+      imageUrl: 'https://picsum.photos/600/404',
+      imageHint: 'beef tacos hard shell cheese lettuce tomato', // More specific hint
       duration: 25,
-      calories: 350,
+      calories: 350, // Per taco, assuming 3 tacos per serving
+      servings: 4, // Added servings (approx 3 tacos each)
       category: 'Dinner',
       cuisine: 'Mexican',
       isPopular: true,
@@ -170,8 +178,8 @@ export const sampleRecipes: Recipe[] = [
     {
       id: '8',
       name: 'Lemon Herb Roasted Chicken',
-      description: 'A juicy and flavorful roasted chicken infused with lemon and herbs.',
-      ingredients: ['1 (3-4 lb) whole chicken', '1 lemon, halved', '4 sprigs fresh rosemary', '4 sprigs fresh thyme', '4 cloves garlic, smashed', '2 tbsp olive oil', 'Salt and black pepper to taste'],
+      description: 'A juicy and flavorful whole roasted chicken infused with lemon and herbs.',
+      ingredients: ['1 (3.5 lb) whole chicken', '1 lemon, halved', '4 sprigs fresh rosemary', '4 sprigs fresh thyme', '4 cloves garlic, smashed', '2 tbsp olive oil', 'Salt and black pepper to taste'],
       procedure: [
           'Preheat oven to 425°F (220°C).',
           'Remove giblets from chicken cavity. Pat chicken dry with paper towels.',
@@ -181,10 +189,11 @@ export const sampleRecipes: Recipe[] = [
           'Roast for 1 hour 15 minutes to 1 hour 30 minutes, or until internal temperature reaches 165°F (74°C) in the thickest part of the thigh.',
           'Let chicken rest for 10-15 minutes before carving.'
       ],
-      imageUrl: 'https://picsum.photos/304/200',
-      imageHint: 'roasted chicken lemon herb',
+      imageUrl: 'https://picsum.photos/604/400',
+      imageHint: 'roasted whole chicken lemon herb rosemary', // More specific hint
       duration: 90,
       calories: 600,
+      servings: 4, // Added servings
       category: 'Dinner',
       cuisine: 'American',
       isPopular: true,
@@ -194,17 +203,18 @@ export const sampleRecipes: Recipe[] = [
       id: '9',
       name: 'Caprese Salad Skewers',
       description: 'Easy and elegant skewers with cherry tomatoes, fresh mozzarella, and basil, drizzled with balsamic glaze.',
-      ingredients: ['1 pint cherry tomatoes', '8 oz fresh mozzarella balls (bocconcini or ciliegine)', 'Fresh basil leaves', 'Balsamic glaze', 'Wooden skewers'],
+      ingredients: ['1 pint cherry tomatoes', '8 oz fresh mozzarella balls (bocconcini)', '30 large fresh basil leaves', 'Balsamic glaze', '15 wooden skewers'],
       procedure: [
           'Thread one cherry tomato, one basil leaf (folded if large), and one mozzarella ball onto each skewer.',
-          'Repeat the pattern if desired, depending on skewer length.',
+          'Repeat the pattern: tomato, basil, mozzarella.',
           'Arrange skewers on a platter.',
           'Drizzle generously with balsamic glaze just before serving.'
       ],
-      imageUrl: 'https://picsum.photos/300/205',
-      imageHint: 'caprese skewers mozzarella basil',
+      imageUrl: 'https://picsum.photos/600/405',
+      imageHint: 'caprese skewers mozzarella tomato basil appetizer', // More specific hint
       duration: 10,
-      calories: 150,
+      calories: 90, // Per skewer approx
+      servings: 15, // Servings as number of skewers
       category: 'Snack',
       cuisine: 'Italian',
       isQuick: true,
@@ -224,10 +234,11 @@ export const sampleRecipes: Recipe[] = [
         'Season with salt and pepper to taste.',
         'Serve hot with desired toppings.'
       ],
-      imageUrl: 'https://picsum.photos/305/200',
-      imageHint: 'vegetarian chili beans',
+      imageUrl: 'https://picsum.photos/605/400',
+      imageHint: 'vegetarian chili beans corn tomato pot', // More specific hint
       duration: 45,
       calories: 380,
+      servings: 6, // Added servings
       category: 'Dinner',
       cuisine: 'American',
       isPopular: false,
@@ -247,10 +258,11 @@ export const sampleRecipes: Recipe[] = [
           'Bake for 50-60 minutes, or until a toothpick inserted into the center comes out clean.',
           'Let cool in pan for a few minutes, then transfer to a wire rack to cool completely.'
       ],
-      imageUrl: 'https://picsum.photos/300/206',
-      imageHint: 'banana bread loaf',
+      imageUrl: 'https://picsum.photos/600/406',
+      imageHint: 'banana bread loaf sliced baked', // More specific hint
       duration: 70,
       calories: 320, // Per slice approx
+      servings: 10, // Servings as number of slices
       category: 'Snack',
       isFavorite: false,
     },
@@ -258,7 +270,7 @@ export const sampleRecipes: Recipe[] = [
       id: '12',
       name: 'Chicken Caesar Salad',
       description: 'Classic Caesar salad topped with grilled chicken breast.',
-      ingredients: ['1 large romaine lettuce head, chopped', '2 boneless, skinless chicken breasts', '1 tbsp olive oil', 'Salt, pepper', 'Croutons', 'Caesar dressing', 'Grated Parmesan cheese'],
+      ingredients: ['1 large romaine lettuce head, chopped', '2 boneless, skinless chicken breasts', '1 tbsp olive oil', 'Salt, pepper', '1 cup croutons', '1/2 cup Caesar dressing', '1/4 cup Grated Parmesan cheese'],
       procedure: [
           'Preheat grill or pan. Season chicken breasts with salt and pepper.',
           'Brush chicken with olive oil and grill for 6-8 minutes per side, or until cooked through.',
@@ -268,10 +280,11 @@ export const sampleRecipes: Recipe[] = [
           'Top salad with sliced grilled chicken.',
           'Serve immediately.'
       ],
-      imageUrl: 'https://picsum.photos/306/200',
-      imageHint: 'chicken caesar salad',
+      imageUrl: 'https://picsum.photos/606/400',
+      imageHint: 'chicken caesar salad grilled romaine parmesan', // More specific hint
       duration: 30,
       calories: 450,
+      servings: 2, // Added servings
       category: 'Lunch',
       cuisine: 'American',
       isPopular: true,
@@ -281,7 +294,7 @@ export const sampleRecipes: Recipe[] = [
       id: '13',
       name: 'Pad Thai',
       description: 'A popular Thai stir-fried noodle dish with a sweet and savory sauce.',
-      ingredients: ['8 oz rice noodles', '3 tbsp fish sauce', '1 tbsp tamarind paste', '1-3 tbsp sugar (to taste)', '1 tbsp lime juice', '2 tbsp vegetable oil', '8 oz firm tofu or shrimp/chicken', '2 cloves garlic, minced', '1 egg, lightly beaten', '1 cup bean sprouts', '1/4 cup chopped peanuts', '2 green onions, chopped', 'Lime wedges for serving'],
+      ingredients: ['8 oz rice noodles', '3 tbsp fish sauce', '1 tbsp tamarind paste', '2 tbsp sugar', '1 tbsp lime juice', '2 tbsp vegetable oil', '8 oz firm tofu or shrimp or chicken, sliced', '2 cloves garlic, minced', '1 large egg, lightly beaten', '1 cup bean sprouts', '1/4 cup chopped roasted peanuts', '2 green onions, chopped', 'Lime wedges for serving', 'Red pepper flakes (optional)'],
       procedure: [
           'Soak rice noodles according to package directions. Drain.',
           'In a small bowl, whisk together fish sauce, tamarind paste, sugar, and lime juice for the sauce.',
@@ -289,12 +302,13 @@ export const sampleRecipes: Recipe[] = [
           'Push ingredients to one side. Add egg to the other side and scramble.',
           'Add drained noodles and sauce to the wok. Toss everything together for 1-2 minutes until noodles are coated and tender.',
           'Add half the bean sprouts and green onions, toss quickly.',
-          'Serve immediately, garnished with remaining bean sprouts, chopped peanuts, and lime wedges.'
+          'Serve immediately, garnished with remaining bean sprouts, chopped peanuts, red pepper flakes (if using), and lime wedges.'
       ],
-      imageUrl: 'https://picsum.photos/300/207',
-      imageHint: 'pad thai noodles shrimp',
+      imageUrl: 'https://picsum.photos/600/407',
+      imageHint: 'pad thai noodles shrimp tofu peanuts lime', // More specific hint
       duration: 30,
       calories: 520,
+      servings: 2, // Added servings
       category: 'Dinner',
       cuisine: 'Thai',
       isPopular: true,
@@ -304,7 +318,7 @@ export const sampleRecipes: Recipe[] = [
         id: '14',
         name: 'Mango Lassi',
         description: 'A refreshing Indian yogurt drink blended with sweet mangoes.',
-        ingredients: ['1 cup ripe mango chunks (fresh or frozen)', '1 cup plain yogurt', '1/2 cup milk', '2-4 tbsp sugar or honey (to taste)', 'Pinch of cardamom (optional)', 'Ice cubes (optional)'],
+        ingredients: ['1 cup ripe mango chunks (fresh or frozen)', '1 cup plain yogurt', '1/2 cup milk', '3 tbsp sugar or honey (to taste)', 'Pinch of ground cardamom (optional)', 'Ice cubes (optional)'],
         procedure: [
             'Combine mango chunks, yogurt, milk, sugar/honey, and cardamom (if using) in a blender.',
             'Blend until smooth and creamy.',
@@ -312,10 +326,11 @@ export const sampleRecipes: Recipe[] = [
             'Taste and adjust sweetness if needed.',
             'Pour into glasses and serve immediately.'
         ],
-        imageUrl: 'https://picsum.photos/307/200',
-        imageHint: 'mango lassi yogurt drink',
+        imageUrl: 'https://picsum.photos/607/400',
+        imageHint: 'mango lassi yogurt drink indian sweet', // More specific hint
         duration: 5,
         calories: 250,
+        servings: 2, // Added servings
         category: 'Drink',
         cuisine: 'Indian',
         isQuick: true,
@@ -325,21 +340,22 @@ export const sampleRecipes: Recipe[] = [
         id: '15',
         name: 'Hummus',
         description: 'A creamy and smooth Middle Eastern dip made from chickpeas, tahini, lemon, and garlic.',
-        ingredients: ['1 (15 oz) can chickpeas, rinsed and drained (reserve some liquid)', '1/4 cup tahini', '1/4 cup fresh lemon juice', '1-2 cloves garlic, minced', '2 tbsp chickpea liquid or water', '2 tbsp olive oil', 'Salt to taste', 'Paprika and parsley for garnish (optional)'],
+        ingredients: ['1 (15 oz) can chickpeas, rinsed and drained (reserve 2-3 tbsp liquid)', '1/4 cup tahini', '1/4 cup fresh lemon juice', '1 large clove garlic, minced', '2 tbsp reserved chickpea liquid or water', '2 tbsp olive oil', 'Salt to taste', 'Paprika and parsley for garnish (optional)'],
         procedure: [
             'Combine tahini and lemon juice in a food processor. Process for 1 minute, scraping down sides.',
             'Add minced garlic and process for 30 seconds more.',
             'Add half of the chickpeas and process until smooth.',
             'Add the remaining chickpeas and process until very smooth, about 1-2 minutes.',
-            'With the food processor running, slowly stream in the chickpea liquid/water and olive oil until the hummus is smooth and creamy.',
+            'With the food processor running, slowly stream in the reserved chickpea liquid/water and olive oil until the hummus is smooth and creamy.',
             'Season with salt to taste.',
             'Transfer to a bowl, drizzle with more olive oil, and garnish with paprika and parsley if desired.',
             'Serve with pita bread or vegetables.'
         ],
-        imageUrl: 'https://picsum.photos/300/208',
-        imageHint: 'hummus chickpeas dip',
+        imageUrl: 'https://picsum.photos/600/408',
+        imageHint: 'hummus chickpeas dip tahini pita bread', // More specific hint
         duration: 10,
         calories: 180, // Per serving approx
+        servings: 4, // Added servings
         category: 'Snack',
         cuisine: 'Mediterranean',
         isQuick: true,
@@ -349,7 +365,7 @@ export const sampleRecipes: Recipe[] = [
         id: '16',
         name: 'Oatmeal with Berries',
         description: 'A simple and hearty bowl of oatmeal topped with fresh berries.',
-        ingredients: ['1/2 cup rolled oats', '1 cup water or milk', 'Pinch of salt', '1/2 cup mixed berries (fresh or frozen)', '1 tbsp nuts or seeds (optional)', '1 tsp honey or maple syrup (optional)'],
+        ingredients: ['1/2 cup rolled oats', '1 cup water or milk', 'Pinch of salt', '1/2 cup mixed berries (fresh or frozen)', '1 tbsp chopped nuts or seeds (optional)', '1 tsp honey or maple syrup (optional)'],
         procedure: [
             'Combine oats, water/milk, and salt in a small saucepan.',
             'Bring to a boil, then reduce heat and simmer for 5-7 minutes, stirring occasionally, until thickened.',
@@ -357,10 +373,11 @@ export const sampleRecipes: Recipe[] = [
             'Top with mixed berries, nuts/seeds, and sweetener if desired.',
             'Serve warm.'
         ],
-        imageUrl: 'https://picsum.photos/308/200',
-        imageHint: 'oatmeal berries breakfast',
+        imageUrl: 'https://picsum.photos/608/400',
+        imageHint: 'oatmeal berries breakfast bowl healthy nuts', // More specific hint
         duration: 10,
         calories: 250,
+        servings: 1, // Added servings
         category: 'Breakfast',
         isQuick: true,
         isFavorite: false,
@@ -368,24 +385,25 @@ export const sampleRecipes: Recipe[] = [
     {
         id: '17',
         name: 'French Onion Soup',
-        description: 'A classic French soup made with caramelized onions and topped with crusty bread and melted cheese.',
-        ingredients: ['4 large onions, thinly sliced', '4 tbsp butter', '1 tbsp olive oil', '1 tsp sugar', '1/2 cup dry white wine (optional)', '6 cups beef broth', 'Salt and pepper to taste', 'Baguette slices, toasted', 'Gruyère or Swiss cheese, shredded'],
+        description: 'A classic French soup made with deeply caramelized onions and topped with crusty bread and melted cheese.',
+        ingredients: ['4 large onions, thinly sliced', '4 tbsp unsalted butter', '1 tbsp olive oil', '1 tsp sugar', '1/2 cup dry white wine (optional)', '6 cups beef broth', 'Salt and pepper to taste', '4 thick slices baguette, toasted', '1 cup shredded Gruyère or Swiss cheese'],
         procedure: [
             'In a large pot or Dutch oven, melt butter and olive oil over medium heat.',
             'Add sliced onions and sugar. Cook slowly, stirring occasionally, for 30-40 minutes, until deeply caramelized and golden brown.',
             'If using wine, pour it in and scrape up any browned bits from the bottom of the pot. Let it simmer for a few minutes.',
             'Pour in beef broth. Season with salt and pepper. Bring to a simmer and cook for at least 20 minutes.',
             'Preheat broiler.',
-            'Ladle soup into oven-safe bowls.',
-            'Top each bowl with one or two slices of toasted baguette.',
+            'Ladle soup into 4 oven-safe bowls.',
+            'Top each bowl with one slice of toasted baguette.',
             'Sprinkle generously with shredded cheese.',
             'Place bowls under the broiler for 2-3 minutes, or until cheese is melted and bubbly.',
             'Serve carefully.'
         ],
-        imageUrl: 'https://picsum.photos/300/209',
-        imageHint: 'french onion soup cheese',
+        imageUrl: 'https://picsum.photos/600/409',
+        imageHint: 'french onion soup cheese bowl bread', // More specific hint
         duration: 75,
         calories: 400,
+        servings: 4, // Added servings
         category: 'Dinner',
         cuisine: 'French',
         isFavorite: false,
@@ -394,19 +412,20 @@ export const sampleRecipes: Recipe[] = [
         id: '18',
         name: 'Guacamole',
         description: 'A simple and fresh avocado dip, perfect with chips or as a topping.',
-        ingredients: ['3 ripe avocados', '1/2 small onion, finely chopped', '1-2 serrano or jalapeño peppers, minced (optional)', '1/4 cup chopped fresh cilantro', '1 lime, juiced', 'Salt to taste'],
+        ingredients: ['3 ripe avocados', '1/2 small red onion, finely chopped', '1 jalapeño pepper, minced (optional)', '1/4 cup chopped fresh cilantro', '1 lime, juiced', 'Salt to taste'],
         procedure: [
             'Cut avocados in half, remove pits, and scoop flesh into a bowl.',
             'Mash the avocado with a fork, leaving some chunks for texture.',
-            'Add chopped onion, minced peppers (if using), and cilantro.',
+            'Add chopped red onion, minced jalapeño (if using), and cilantro.',
             'Squeeze lime juice over the mixture.',
             'Season with salt to taste and stir gently to combine.',
             'Serve immediately with tortilla chips or as desired.'
         ],
-        imageUrl: 'https://picsum.photos/309/200',
-        imageHint: 'guacamole avocado dip',
+        imageUrl: 'https://picsum.photos/609/400',
+        imageHint: 'guacamole avocado dip chips lime cilantro', // More specific hint
         duration: 10,
         calories: 150, // Per serving approx
+        servings: 4, // Added servings
         category: 'Snack',
         cuisine: 'Mexican',
         isQuick: true,
@@ -429,10 +448,11 @@ export const sampleRecipes: Recipe[] = [
             'Bake for 9-11 minutes, or until edges are golden brown.',
             'Let cool on baking sheets for a few minutes before transferring to wire racks to cool completely.'
         ],
-        imageUrl: 'https://picsum.photos/300/210',
-        imageHint: 'chocolate chip cookies',
+        imageUrl: 'https://picsum.photos/600/410',
+        imageHint: 'chocolate chip cookies baked homemade dessert', // More specific hint
         duration: 30,
         calories: 150, // Per cookie approx
+        servings: 24, // Servings as number of cookies
         category: 'Snack',
         cuisine: 'American',
         isPopular: true,
@@ -442,7 +462,7 @@ export const sampleRecipes: Recipe[] = [
         id: '20',
         name: 'Roasted Brussels Sprouts',
         description: 'Crispy and flavorful roasted Brussels sprouts, a simple and healthy side dish.',
-        ingredients: ['1 lb Brussels sprouts, trimmed and halved', '2-3 tbsp olive oil', 'Salt and pepper to taste', 'Optional: Balsamic glaze, bacon bits, grated Parmesan'],
+        ingredients: ['1 lb Brussels sprouts, trimmed and halved', '3 tbsp olive oil', 'Salt and pepper to taste', 'Optional: Balsamic glaze, bacon bits, grated Parmesan'],
         procedure: [
             'Preheat oven to 400°F (200°C).',
             'Toss Brussels sprouts with olive oil, salt, and pepper on a baking sheet.',
@@ -451,10 +471,11 @@ export const sampleRecipes: Recipe[] = [
             'Optional: Toss with balsamic glaze, bacon bits, or Parmesan cheese before serving.',
             'Serve hot.'
         ],
-        imageUrl: 'https://picsum.photos/310/200',
-        imageHint: 'roasted brussels sprouts',
+        imageUrl: 'https://picsum.photos/610/400',
+        imageHint: 'roasted brussels sprouts side dish vegetable', // More specific hint
         duration: 30,
         calories: 120,
+        servings: 4, // Added servings
         category: 'Side',
         isQuick: true,
         isFavorite: false,
@@ -463,9 +484,9 @@ export const sampleRecipes: Recipe[] = [
       id: '21',
       name: 'Butternut Squash Soup',
       description: 'A creamy and comforting soup made from roasted butternut squash.',
-      ingredients: ['1 medium butternut squash, peeled, seeded, and cubed', '1 tbsp olive oil', '1 onion, chopped', '2 carrots, chopped', '2 celery stalks, chopped', '4 cups vegetable or chicken broth', '1/2 tsp dried thyme', 'Salt and pepper to taste', 'Optional: Heavy cream or coconut milk for extra creaminess'],
+      ingredients: ['1 medium butternut squash (about 3 lbs), peeled, seeded, and cubed', '1 tbsp olive oil', '1 large onion, chopped', '2 carrots, chopped', '2 celery stalks, chopped', '4 cups vegetable or chicken broth', '1/2 tsp dried thyme', 'Salt and pepper to taste', 'Optional: 1/4 cup heavy cream or coconut milk for extra creaminess'],
       procedure: [
-          'Preheat oven to 400°F (200°C). Toss butternut squash cubes with olive oil, salt, and pepper. Roast for 25-30 minutes until tender.',
+          'Preheat oven to 400°F (200°C). Toss butternut squash cubes with 1 tbsp olive oil, salt, and pepper. Roast for 25-30 minutes until tender.',
           'While squash is roasting, heat 1 tbsp olive oil in a large pot over medium heat. Add onion, carrots, and celery. Cook until softened, about 5-7 minutes.',
           'Add roasted butternut squash, broth, and thyme to the pot.',
           'Bring to a simmer, then reduce heat and cook for 15-20 minutes.',
@@ -474,10 +495,11 @@ export const sampleRecipes: Recipe[] = [
           'Season with salt and pepper to taste. Reheat gently if needed.',
           'Serve hot.'
       ],
-      imageUrl: 'https://picsum.photos/300/211',
-      imageHint: 'butternut squash soup creamy',
+      imageUrl: 'https://picsum.photos/600/411',
+      imageHint: 'butternut squash soup creamy orange bowl', // More specific hint
       duration: 60,
       calories: 200,
+      servings: 6, // Added servings
       category: 'Dinner',
       isFavorite: false,
     },
@@ -485,7 +507,7 @@ export const sampleRecipes: Recipe[] = [
       id: '22',
       name: 'Shrimp Scampi',
       description: 'Quick and elegant pasta dish with shrimp sautéed in garlic butter sauce.',
-      ingredients: ['8 oz linguine or spaghetti', '1 lb large shrimp, peeled and deveined', '4 tbsp butter', '4 cloves garlic, minced', '1/4 cup dry white wine or chicken broth', '1/4 cup chopped fresh parsley', '1/2 lemon, juiced', 'Red pepper flakes to taste (optional)', 'Salt and pepper to taste'],
+      ingredients: ['8 oz linguine or spaghetti', '1 lb large shrimp, peeled and deveined', '4 tbsp unsalted butter', '4 cloves garlic, minced', '1/4 cup dry white wine or chicken broth', '1/4 cup chopped fresh parsley', '1/2 lemon, juiced', '1/4 tsp Red pepper flakes (optional)', 'Salt and pepper to taste'],
       procedure: [
           'Cook pasta according to package directions. Drain, reserving about 1/2 cup pasta water.',
           'While pasta is cooking, melt butter in a large skillet over medium heat.',
@@ -497,10 +519,11 @@ export const sampleRecipes: Recipe[] = [
           'Season with salt and pepper to taste.',
           'Serve immediately.'
       ],
-      imageUrl: 'https://picsum.photos/311/200',
-      imageHint: 'shrimp scampi pasta garlic',
+      imageUrl: 'https://picsum.photos/611/400',
+      imageHint: 'shrimp scampi pasta garlic butter lemon', // More specific hint
       duration: 25,
       calories: 500,
+      servings: 2, // Added servings
       category: 'Dinner',
       cuisine: 'Italian',
       isQuick: true,
@@ -511,7 +534,7 @@ export const sampleRecipes: Recipe[] = [
         id: '23',
         name: 'Breakfast Burrito',
         description: 'A hearty and customizable breakfast wrap with eggs, cheese, and your favorite fillings.',
-        ingredients: ['2 large eggs, scrambled', '1 large flour tortilla', '1/4 cup shredded cheese (cheddar, Monterey Jack)', '2 tbsp cooked sausage or bacon bits (optional)', '2 tbsp black beans or potatoes (optional)', 'Salsa or hot sauce (optional)'],
+        ingredients: ['2 large eggs, scrambled', '1 large flour tortilla', '1/4 cup shredded cheese (cheddar or Monterey Jack)', '2 tbsp cooked sausage crumbles or bacon bits (optional)', '2 tbsp black beans or diced cooked potatoes (optional)', 'Salsa or hot sauce for serving (optional)'],
         procedure: [
             'Warm the tortilla slightly in a dry skillet or microwave to make it pliable.',
             'Layer cheese, scrambled eggs, and optional fillings (sausage, bacon, beans, potatoes) down the center of the tortilla.',
@@ -521,10 +544,11 @@ export const sampleRecipes: Recipe[] = [
             'Optional: Place the burrito seam-side down in a hot skillet for a minute or two to seal and crisp the outside.',
             'Serve immediately with salsa or hot sauce if desired.'
         ],
-        imageUrl: 'https://picsum.photos/300/212',
-        imageHint: 'breakfast burrito egg cheese',
+        imageUrl: 'https://picsum.photos/600/412',
+        imageHint: 'breakfast burrito egg cheese sausage tortilla', // More specific hint
         duration: 10,
         calories: 450,
+        servings: 1, // Added servings
         category: 'Breakfast',
         cuisine: 'Mexican',
         isQuick: true,
@@ -535,22 +559,23 @@ export const sampleRecipes: Recipe[] = [
         name: 'Apple Crisp',
         description: 'Warm baked apples topped with a sweet and crunchy oat crumble.',
         ingredients: [
-            'Filling: 4-5 medium apples (like Honeycrisp or Granny Smith), peeled, cored, and sliced', '1 tbsp lemon juice', '1/4 cup sugar', '1 tsp cinnamon',
-            'Topping: 1 cup rolled oats', '1/2 cup all-purpose flour', '1/2 cup brown sugar', '1/4 tsp salt', '1/2 cup (1 stick) cold unsalted butter, cut into pieces'
+            'Filling: 5 medium apples (like Honeycrisp or Granny Smith), peeled, cored, and sliced', '1 tbsp lemon juice', '1/4 cup granulated sugar', '1 tsp ground cinnamon',
+            'Topping: 1 cup rolled oats', '1/2 cup all-purpose flour', '1/2 cup packed brown sugar', '1/4 tsp salt', '1/2 cup (1 stick) cold unsalted butter, cut into small pieces'
         ],
         procedure: [
-            'Preheat oven to 375°F (190°C).',
-            'In a bowl, toss sliced apples with lemon juice, sugar, and cinnamon. Spread evenly in a baking dish (approx 8x8 inch).',
+            'Preheat oven to 375°F (190°C). Grease an 8x8 inch baking dish.',
+            'In a bowl, toss sliced apples with lemon juice, granulated sugar, and cinnamon. Spread evenly in the prepared baking dish.',
             'In a separate bowl, combine oats, flour, brown sugar, and salt for the topping.',
             'Cut in the cold butter pieces using a pastry blender, forks, or your fingers until the mixture resembles coarse crumbs.',
             'Sprinkle the topping evenly over the apples.',
             'Bake for 30-40 minutes, or until the topping is golden brown and the apples are tender and bubbly.',
             'Let cool slightly before serving. Delicious served warm with vanilla ice cream.'
         ],
-        imageUrl: 'https://picsum.photos/312/200',
-        imageHint: 'apple crisp dessert oat topping',
+        imageUrl: 'https://picsum.photos/612/400',
+        imageHint: 'apple crisp dessert oat topping baked cinnamon', // More specific hint
         duration: 50,
         calories: 380, // Per serving approx
+        servings: 6, // Added servings
         category: 'Snack', // Or Dessert
         isFavorite: false,
     },
@@ -558,7 +583,7 @@ export const sampleRecipes: Recipe[] = [
         id: '25',
         name: 'Iced Coffee',
         description: 'A simple way to make refreshing iced coffee at home.',
-        ingredients: ['1 cup strong brewed coffee, cooled or room temperature', '1/2 cup milk or cream (optional)', '1-2 tsp sugar or sweetener (optional)', 'Ice cubes'],
+        ingredients: ['1 cup strong brewed coffee, cooled', '1/2 cup milk or cream (optional)', '1-2 tsp sugar or sweetener (optional)', 'Ice cubes'],
         procedure: [
             'Brew strong coffee using your preferred method (drip, French press, cold brew). Let it cool completely.',
             'Fill a glass with ice cubes.',
@@ -566,18 +591,19 @@ export const sampleRecipes: Recipe[] = [
             'If desired, add milk/cream and sugar/sweetener.',
             'Stir well and enjoy immediately.'
         ],
-        imageUrl: 'https://picsum.photos/300/213',
-        imageHint: 'iced coffee milk',
+        imageUrl: 'https://picsum.photos/600/413',
+        imageHint: 'iced coffee glass milk ice cubes drink', // More specific hint
         duration: 5, // Plus cooling time for coffee
         calories: 50, // Highly variable depending on additions
+        servings: 1, // Added servings
         category: 'Drink',
         isQuick: true,
         isFavorite: false,
     }
-    // Add many more recipes here...
+    // Add many more recipes here following the same structure...
 ];
 
-// Sample Cuisines
+// Sample Cuisines (no changes needed here unless adding more)
 export const sampleCuisines = [
     { name: 'Italian', imageUrl: 'https://picsum.photos/150/101', imageHint: 'italian food pasta pizza' },
     { name: 'Mexican', imageUrl: 'https://picsum.photos/151/100', imageHint: 'mexican food tacos burrito' },
@@ -587,11 +613,8 @@ export const sampleCuisines = [
     { name: 'American', imageUrl: 'https://picsum.photos/153/100', imageHint: 'american food burger fries' },
     { name: 'Japanese', imageUrl: 'https://picsum.photos/150/104', imageHint: 'japanese food sushi ramen' },
     { name: 'Thai', imageUrl: 'https://picsum.photos/154/100', imageHint: 'thai food green curry pad thai' },
-    { name: 'French', imageUrl: 'https://picsum.photos/150/105', imageHint: 'french food croissant pastry' }, // Added French
-    // Add more cuisines
+    { name: 'French', imageUrl: 'https://picsum.photos/150/105', imageHint: 'french food croissant pastry' },
 ];
 
 export const recipeCategories = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink', 'Side'] as const;
 export type RecipeCategory = typeof recipeCategories[number];
-
-    

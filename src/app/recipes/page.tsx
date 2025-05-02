@@ -1,7 +1,8 @@
+// src/app/recipes/page.tsx
 'use client';
 
 import * as React from 'react';
-import { Search, Filter, Heart, X, Clock, Flame } from 'lucide-react'; // Added Clock and Flame
+import { Search, Filter, Heart, X, Clock, Flame, Users, Minus, Plus } from 'lucide-react'; // Added Users, Minus, Plus
 import { sampleRecipes, sampleCuisines, recipeCategories, Recipe, RecipeCategory } from './recipe-data'; // Adjust path as necessary
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,8 +20,79 @@ import {
 } from "@/components/ui/dialog";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator'; // Import Separator
 
 const DEBOUNCE_TIME = 300; // milliseconds
+
+// Helper function to parse and adjust ingredient quantities
+const adjustIngredient = (ingredient: string, currentServings: number, originalServings: number): string => {
+    if (originalServings <= 0 || currentServings <= 0) return ingredient; // Avoid division by zero or nonsensical values
+
+    const scaleFactor = currentServings / originalServings;
+
+    // Regex to find numbers (including fractions like 1/2 or decimals like 0.5) at the beginning of the string
+    const quantityMatch = ingredient.match(/^(\d+(\.\d+)?\s*(\/\s*\d+)?|\d+\/\d+|\.\d+)/);
+
+    if (quantityMatch) {
+        const quantityStr = quantityMatch[0].trim();
+        const restOfIngredient = ingredient.substring(quantityMatch[0].length).trim();
+        let originalQuantity: number;
+
+        // Handle fractions
+        if (quantityStr.includes('/')) {
+            const parts = quantityStr.split('/');
+            if (parts.length === 2) {
+                const numerator = parseFloat(parts[0]);
+                const denominator = parseFloat(parts[1]);
+                if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                    originalQuantity = numerator / denominator;
+                } else {
+                    return ingredient; // Invalid fraction
+                }
+            } else {
+                 return ingredient; // Invalid fraction format
+            }
+        } else {
+             originalQuantity = parseFloat(quantityStr);
+        }
+
+
+        if (!isNaN(originalQuantity)) {
+            const newQuantity = originalQuantity * scaleFactor;
+
+            // Format the new quantity (e.g., handle decimals, maybe convert back to simple fractions if desired)
+            let newQuantityStr: string;
+            if (newQuantity === 0) {
+                newQuantityStr = "0"; // Avoid issues with small numbers becoming empty strings
+            } else if (newQuantity < 0.1) {
+                newQuantityStr = newQuantity.toFixed(2); // Show more precision for very small amounts
+            } else if (newQuantity < 1 && (newQuantity * 4) % 1 === 0) { // Try simple fractions (1/4, 1/2, 3/4)
+                if (newQuantity === 0.25) newQuantityStr = "1/4";
+                else if (newQuantity === 0.5) newQuantityStr = "1/2";
+                else if (newQuantity === 0.75) newQuantityStr = "3/4";
+                else newQuantityStr = newQuantity.toFixed(1); // Fallback for other fractions < 1
+            }
+            else {
+                newQuantityStr = parseFloat(newQuantity.toFixed(1)).toString(); // Round to 1 decimal place for most cases
+            }
+
+
+            return `${newQuantityStr} ${restOfIngredient}`;
+        }
+    }
+
+    // If no quantity found at the start, return original string or maybe prefix based on scale
+    if (scaleFactor !== 1) {
+        // Decide how to handle ingredients without quantities (e.g., "Salt to taste")
+        // Option 1: Return as is
+         return ingredient;
+        // Option 2: Prefix with scale factor (might be awkward)
+        // return `(${scaleFactor.toFixed(1)}x) ${ingredient}`;
+    }
+
+    return ingredient; // Return original if scaleFactor is 1
+};
+
 
 export default function RecipesPage() {
   const { toast } = useToast();
@@ -32,6 +104,8 @@ export default function RecipesPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [showOnlyFavorites, setShowOnlyFavorites] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [modalServings, setModalServings] = React.useState<number>(1); // State for servings in modal
+
 
   // Load initial recipes and favorites from localStorage
    React.useEffect(() => {
@@ -145,6 +219,7 @@ export default function RecipesPage() {
 
   const openRecipeModal = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
+    setModalServings(recipe.servings); // Initialize modal servings with recipe default
     setIsModalOpen(true);
   };
 
@@ -155,6 +230,25 @@ export default function RecipesPage() {
        setSelectedRecipe(null);
      }, 300);
    };
+
+   const incrementServings = () => {
+       setModalServings(prev => prev + 1);
+   };
+
+   const decrementServings = () => {
+       setModalServings(prev => Math.max(1, prev - 1)); // Ensure servings don't go below 1
+   };
+
+   // Calculate adjusted ingredients based on modalServings
+   const adjustedIngredients = React.useMemo(() => {
+       if (!selectedRecipe) return [];
+       return selectedRecipe.ingredients.map(ing =>
+           adjustIngredient(ing, modalServings, selectedRecipe.servings)
+       );
+   }, [selectedRecipe, modalServings]);
+
+   // Calculate adjusted calories per serving
+   const caloriesPerServing = selectedRecipe ? selectedRecipe.calories : 0; // Calories are per original serving
 
 
   return (
@@ -288,91 +382,123 @@ export default function RecipesPage() {
 
         {/* Recipe Detail Modal */}
          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0"> {/* Remove default padding */}
+             <DialogContent className="sm:max-w-[650px] max-h-[95vh] flex flex-col p-0 overflow-hidden"> {/* Adjust width and height, remove padding */}
                {selectedRecipe && (
                  <>
+                    {/* Header section with Image and Title */}
                     <DialogHeader className="relative p-0"> {/* Remove default padding */}
-                        <div className="relative"> {/* Container for image and buttons */}
+                        {/* Image container */}
+                        <div className="relative">
                             <Image
-                            src={selectedRecipe.imageUrl}
-                            alt={selectedRecipe.name}
-                            width={600}
-                            height={300}
-                            className="aspect-video object-cover w-full rounded-t-lg mb-0" // Remove bottom margin
-                            data-ai-hint={selectedRecipe.imageHint}
+                                src={selectedRecipe.imageUrl}
+                                alt={selectedRecipe.name}
+                                width={650} // Match content width
+                                height={350} // Adjust height for better aspect ratio
+                                className="object-cover w-full h-[300px] sm:h-[350px] rounded-t-lg" // Fixed height, object cover
+                                data-ai-hint={selectedRecipe.imageHint}
+                                priority // Load image eagerly when modal opens
+                                unoptimized // Disable optimization if using external URLs like picsum
                             />
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "absolute top-4 right-14 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10", // Position favorite button
-                                    selectedRecipe.isFavorite && "text-destructive bg-black/60" // Use destructive color from theme
-                                    )}
-                                onClick={() => toggleFavorite(selectedRecipe.id)}
-                                aria-label={selectedRecipe.isFavorite ? "Remove from favorites" : "Add to favorites"}
-                                >
-                                <Heart className={cn("h-5 w-5", selectedRecipe.isFavorite && "fill-current")} />
-                             </Button>
-                              <DialogClose asChild>
-                               <Button
+                             {/* Favorite and Close Buttons */}
+                            <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={closeRecipeModal}
-                                    className="absolute top-4 right-4 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10 p-1 opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" // Consistent styling with favorite button
+                                    className={cn(
+                                        "rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm p-2", // Styling for buttons
+                                        selectedRecipe.isFavorite && "text-destructive"
+                                        )}
+                                    onClick={() => toggleFavorite(selectedRecipe.id)}
+                                    aria-label={selectedRecipe.isFavorite ? "Remove from favorites" : "Add to favorites"}
                                 >
-                                    <X className="h-5 w-5" />
-                                    <span className="sr-only">Close</span>
+                                    <Heart className={cn("h-5 w-5", selectedRecipe.isFavorite && "fill-current")} />
                                 </Button>
-                              </DialogClose>
+                                <DialogClose asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={closeRecipeModal}
+                                        className="rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm p-2" // Styling for buttons
+                                    >
+                                        <X className="h-5 w-5" />
+                                        <span className="sr-only">Close</span>
+                                    </Button>
+                                </DialogClose>
+                            </div>
                          </div>
-                         <div className="p-6"> {/* Add padding for text content */}
-                            <DialogTitle className="text-2xl font-bold mb-1">{selectedRecipe.name}</DialogTitle>
-                            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1 mb-3">
+                         {/* Text content below image */}
+                        <div className="p-4 sm:p-6 space-y-3"> {/* Consistent padding */}
+                            <DialogTitle className="text-2xl font-bold">{selectedRecipe.name}</DialogTitle>
+                             {/* Metadata row */}
+                            <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                     <Clock className="h-4 w-4" />
                                     {selectedRecipe.duration} min
                                 </span>
                                 <span className="flex items-center gap-1">
                                     <Flame className="h-4 w-4" />
-                                    {selectedRecipe.calories} kcal
+                                    {caloriesPerServing} kcal / serving
                                 </span>
                                 {selectedRecipe.cuisine && (
-                                    <span className="flex items-center gap-1 capitalize">
-                                         {/* Consider adding a cuisine icon if available */}
+                                    <span className="capitalize flex items-center gap-1">
+                                        {/* Icon placeholder */}
                                         {selectedRecipe.cuisine}
                                     </span>
                                 )}
-                                 <span className="flex items-center gap-1 capitalize">
-                                     {/* Consider adding a category icon */}
+                                 <span className="capitalize flex items-center gap-1">
+                                    {/* Icon placeholder */}
                                     {selectedRecipe.category}
                                  </span>
                             </div>
+                            {/* Description */}
                              {selectedRecipe.description && (
-                                 <DialogDescription className="text-base text-foreground/90"> {/* Slightly less muted */}
+                                 <DialogDescription className="text-base text-foreground/90 leading-relaxed">
                                     {selectedRecipe.description}
                                  </DialogDescription>
                              )}
                          </div>
-
+                         <Separator /> {/* Separator before ingredients/procedure */}
                     </DialogHeader>
-                    <ScrollArea className="flex-grow overflow-y-auto px-6 pb-6 -mt-2"> {/* Add padding and adjust margin */}
-                        <div className="grid md:grid-cols-2 gap-x-8 gap-y-6"> {/* Increased gap */}
-                        <div>
-                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Ingredients</h3> {/* Added border */}
-                            <ul className="list-disc list-outside pl-5 space-y-1.5 text-sm"> {/* Adjusted list style and spacing */}
-                            {selectedRecipe.ingredients.map((item, index) => (
-                                <li key={index}>{item}</li>
-                            ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Procedure</h3> {/* Added border */}
-                            <ol className="list-decimal list-outside pl-5 space-y-2 text-sm"> {/* Adjusted list style and spacing */}
-                            {selectedRecipe.procedure.map((step, index) => (
-                                <li key={index} className="pl-1">{step}</li> // Added slight padding
-                            ))}
-                            </ol>
-                        </div>
+
+                    {/* Scrollable Content Area */}
+                     <ScrollArea className="flex-grow overflow-y-auto px-4 sm:px-6 pb-6"> {/* Padding inside scroll area */}
+                         {/* Servings Adjuster */}
+                         <div className="flex items-center justify-between my-4 p-3 bg-muted/50 rounded-md">
+                             <div className="flex items-center gap-2">
+                                 <Users className="h-5 w-5 text-primary" />
+                                 <span className="font-medium">Servings:</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                                 <Button variant="outline" size="icon" onClick={decrementServings} disabled={modalServings <= 1} aria-label="Decrease servings">
+                                     <Minus className="h-4 w-4" />
+                                 </Button>
+                                 <span className="font-semibold text-lg w-8 text-center">{modalServings}</span>
+                                 <Button variant="outline" size="icon" onClick={incrementServings} aria-label="Increase servings">
+                                     <Plus className="h-4 w-4" />
+                                 </Button>
+                             </div>
+                         </div>
+
+                        {/* Ingredients and Procedure Grid */}
+                        <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 mt-4">
+                            {/* Ingredients */}
+                            <div>
+                                <h3 className="font-semibold mb-2 text-lg border-b pb-1">Ingredients</h3>
+                                <ul className="list-disc list-outside pl-5 space-y-1.5 text-sm">
+                                    {adjustedIngredients.map((item, index) => (
+                                        <li key={index}>{item}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                             {/* Procedure */}
+                            <div>
+                                <h3 className="font-semibold mb-2 text-lg border-b pb-1">Procedure</h3>
+                                <ol className="list-decimal list-outside pl-5 space-y-2 text-sm">
+                                    {selectedRecipe.procedure.map((step, index) => (
+                                        <li key={index} className="pl-1">{step}</li>
+                                    ))}
+                                </ol>
+                            </div>
                         </div>
                     </ScrollArea>
                  </>
@@ -383,5 +509,3 @@ export default function RecipesPage() {
     </div>
   );
 }
-
-    
