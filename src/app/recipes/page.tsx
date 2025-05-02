@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Search, Filter, Heart, X, Clock, Flame, Users, Minus, Plus } from 'lucide-react'; // Added Users, Minus, Plus
+import { Search, Filter, Heart, X, Clock, Flame, Users, Minus, Plus, PlusCircle } from 'lucide-react'; // Added Users, Minus, Plus, PlusCircle
 import { sampleRecipes, sampleCuisines, recipeCategories, Recipe, RecipeCategory } from './recipe-data'; // Adjust path as necessary
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator'; // Import Separator
+import { addCaloriesToLog } from '@/lib/calorie-utils'; // Import the new utility function
 
 const DEBOUNCE_TIME = 300; // milliseconds
 
@@ -260,6 +261,20 @@ export default function RecipesPage() {
 
    // Calculate adjusted calories per serving
    const caloriesPerServing = selectedRecipe ? selectedRecipe.calories : 0; // Calories are per original serving
+   // Calculate total calories for the adjusted servings
+   const totalCaloriesForServings = caloriesPerServing * modalServings;
+
+    // Function to handle adding calories to the log
+    const handleAddCalories = () => {
+        if (!selectedRecipe) return;
+        addCaloriesToLog(selectedRecipe.name, totalCaloriesForServings);
+        toast({
+            title: "Calories Logged",
+            description: `Added ${totalCaloriesForServings} kcal for ${modalServings} serving(s) of ${selectedRecipe.name}.`,
+        });
+        // Optionally close modal after adding
+        // closeRecipeModal();
+    };
 
 
   return (
@@ -510,6 +525,14 @@ export default function RecipesPage() {
                                     ))}
                                 </ol>
                             </div>
+                        </div>
+
+                         {/* Add to Log Button */}
+                        <div className="mt-6">
+                             <Button onClick={handleAddCalories} className="w-full">
+                                 <PlusCircle className="mr-2 h-4 w-4" />
+                                 Add {totalCaloriesForServings} kcal to Log ({modalServings} serving{modalServings !== 1 ? 's' : ''})
+                             </Button>
                         </div>
                     </ScrollArea>
                  </>

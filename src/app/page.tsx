@@ -107,16 +107,43 @@ export default function HomePage() {
 
   }, []); // Empty dependency array: run once on mount
 
-  // Update calendar data when today's values change
+    // Effect to listen for calorie updates from other pages/components
+    React.useEffect(() => {
+      const handleCaloriesUpdate = (event: Event) => {
+        const customEvent = event as CustomEvent<{ total: number; goal: number }>;
+        if (customEvent.detail) {
+          setTodayCalories(customEvent.detail.total);
+          setCalorieGoal(customEvent.detail.goal);
+          // Update calendar data as well
+          const todayStr = format(new Date(), 'yyyy-MM-dd');
+          setCalendarData(prev => ({
+            ...prev,
+            calories: {
+              ...prev.calories,
+              [todayStr]: { total: customEvent.detail.total, goal: customEvent.detail.goal }
+            }
+          }));
+        }
+      };
+
+      window.addEventListener('caloriesUpdated', handleCaloriesUpdate);
+
+      return () => {
+        window.removeEventListener('caloriesUpdated', handleCaloriesUpdate);
+      };
+    }, []); // Run once on mount
+
+
+  // Update calendar data when today's values change (except calories, handled by event)
   React.useEffect(() => {
     // Ensure this runs only on the client side and after initial load
      if (isLoading) return;
 
     const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const updatedCalories = {
-        ...calendarData.calories,
-        [todayStr]: { total: todayCalories, goal: calorieGoal }
-    };
+    // const updatedCalories = { // Removed calorie update here, handled by event listener
+    //     ...calendarData.calories,
+    //     [todayStr]: { total: todayCalories, goal: calorieGoal }
+    // };
     const updatedWater = {
         ...calendarData.water,
         [todayStr]: { total: todayWater, goal: waterGoal }
@@ -125,14 +152,14 @@ export default function HomePage() {
 
     setCalendarData(prev => ({
         ...prev,
-        calories: updatedCalories,
+       // calories: updatedCalories, // Removed
         water: updatedWater,
     }));
      // Persist updated daily data
-     localStorage.setItem('nutri_daily_calories', JSON.stringify(updatedCalories));
+     // localStorage.setItem('nutri_daily_calories', JSON.stringify(updatedCalories)); // Removed
      localStorage.setItem('nutri_daily_water', JSON.stringify(updatedWater));
 
-  }, [todayCalories, calorieGoal, todayWater, waterGoal, isLoading]); // Removed history refs
+  }, [todayWater, waterGoal, isLoading]); // Removed calorie dependencies
 
 
   // Calendar modifiers
