@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Utensils, GlassWater, Settings, BookOpenCheck } from 'lucide-react'; // Removed User icon
+import { Utensils, GlassWater, Settings, BookOpenCheck, Timer } from 'lucide-react'; // Added Timer icon
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/calories', label: 'Calories', icon: Utensils },
   { href: '/water', label: 'Water', icon: GlassWater },
   { href: '/recipes', label: 'Recipes', icon: BookOpenCheck },
+  { href: '/fasting', label: 'Fasting', icon: Timer }, // Added Fasting link
  // { href: '/register', label: 'Profile', icon: User }, // Removed Profile link
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -18,8 +19,8 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background shadow-md">
-      {/* Adjusted grid columns to 4 */}
-      <div className="mx-auto grid h-16 max-w-md grid-cols-4 items-center justify-around px-1">
+      {/* Adjusted grid columns to 5 */}
+      <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center justify-around px-1">
         {navItems.map((item) => {
           // Check if the current path starts with the item's href for broader matching
           // Exact match for root pages like '/calories', '/water', '/settings'
