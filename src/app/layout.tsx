@@ -4,6 +4,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import BottomNav from '@/components/layout/bottom-nav';
 import { Toaster } from "@/components/ui/toaster";
+import ServiceWorkerRegistration from '@/components/layout/service-worker-registration'; // Import the component
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -69,6 +70,7 @@ export default function RootLayout({
         <main className="pb-20">{children}</main>
         <BottomNav />
         <Toaster />
+        <ServiceWorkerRegistration /> {/* Add the registration component */}
       </body>
     </html>
   );
