@@ -81,7 +81,7 @@ const getDefaultPlan = (): FastingPlan => ({
 
 // Function to show notification (if permission granted)
 const showPhaseEndNotification = (currentPhase: FastingPhase, nextPhase: FastingPhase) => {
-    if ('Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
             registration.showNotification(`Fasting Phase Ended`, {
                 body: `Your ${currentPhase} phase is over. Starting ${nextPhase} phase now.`,
@@ -91,11 +91,11 @@ const showPhaseEndNotification = (currentPhase: FastingPhase, nextPhase: Fasting
                 renotify: true, // Notify even if a notification with the same tag exists
             });
         });
-    } else if ('Notification' in window && Notification.permission === 'default') {
+    } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
         console.log('Notification permission not yet requested or denied.');
-    } else if ('Notification' in window && Notification.permission === 'denied') {
+    } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied') {
         console.log('Notification permission was denied.');
-    } else {
+    } else if (typeof window !== 'undefined') {
         console.log('Notifications not supported by this browser or service worker not available.');
     }
 };
@@ -124,13 +124,15 @@ export default function FastingTracker() {
   const [remainingTime, setRemainingTime] = React.useState<RemainingTime | null>(null);
   const [progress, setProgress] = React.useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
-  // Initialize with null, check permission client-side only
+  // Initialize with null, check permission client-side only inside useEffect
   const [notificationPermission, setNotificationPermission] = React.useState<NotificationPermission | null>(null);
+  const [isMounted, setIsMounted] = React.useState(false); // Track client-side mount
   const todayStr = format(new Date(), 'yyyy-MM-dd');
 
    // Check and store notification permission status on mount
    React.useEffect(() => {
      // Ensure this runs only on the client
+     setIsMounted(true); // Mark as mounted
      if ('Notification' in window) {
        setNotificationPermission(Notification.permission);
      }
@@ -139,76 +141,76 @@ export default function FastingTracker() {
 
   // Load state from localStorage
   React.useEffect(() => {
+    // Ensure localStorage is accessed only client-side after mount
+    if (!isMounted) return;
+
     setIsLoading(true);
     let loadedPlan = getDefaultPlan();
     let loadedPhase: FastingPhase = 'idle';
     let loadedStartTime: number | null = null;
 
-    // Ensure localStorage is accessed only client-side
-    if (typeof window !== 'undefined') {
-        try {
-            const savedPlan = localStorage.getItem('nutri_fastingPlan');
-            const savedPhase = localStorage.getItem('nutri_fastingCurrentPhase');
-            const savedStartTime = localStorage.getItem('nutri_fastingPhaseStartTime');
+    try {
+        const savedPlan = localStorage.getItem('nutri_fastingPlan');
+        const savedPhase = localStorage.getItem('nutri_fastingCurrentPhase');
+        const savedStartTime = localStorage.getItem('nutri_fastingPhaseStartTime');
 
-            if (savedPlan) loadedPlan = JSON.parse(savedPlan);
-            if (savedPhase) loadedPhase = savedPhase as FastingPhase;
-            if (savedStartTime) loadedStartTime = parseInt(savedStartTime, 10);
+        if (savedPlan) loadedPlan = JSON.parse(savedPlan);
+        if (savedPhase) loadedPhase = savedPhase as FastingPhase;
+        if (savedStartTime) loadedStartTime = parseInt(savedStartTime, 10);
 
-            // Validate loaded data
-            if (!fastingPlans[loadedPlan.key as FastingPlanKey]) {
-                loadedPlan = getDefaultPlan(); // Reset if plan key is invalid
-            }
-            if (!['idle', 'fasting', 'eating'].includes(loadedPhase)) {
-                loadedPhase = 'idle'; // Reset if phase is invalid
-            }
-             if (isNaN(loadedStartTime ?? NaN)) {
-                loadedStartTime = null; // Reset if start time is invalid
-             }
-
-            // If a phase was active, check if it should have ended while the app was closed
-             if (loadedPhase !== 'idle' && loadedStartTime !== null) {
-                 const phaseDurationHours = loadedPhase === 'fasting' ? loadedPlan.fastingHours : loadedPlan.eatingHours;
-                 const phaseDurationMs = phaseDurationHours * 60 * 60 * 1000;
-                 const expectedEndTime = loadedStartTime + phaseDurationMs;
-
-                 if (Date.now() >= expectedEndTime) {
-                    // Phase ended while closed. Ideally, calculate how many cycles were missed.
-                    // Simplification: Just set to idle or the *next* logical phase based on schedule (complex).
-                    // For now, simplest is to revert to idle to avoid incorrect state.
-                     console.log("Fasting phase ended while app was closed. Resetting to idle.");
-                     loadedPhase = 'idle';
-                     loadedStartTime = null;
-                     // Clear calendar record for today if resetting
-                      updateDailyFastingRecord(todayStr, undefined);
-                 }
-             }
-
-
-        } catch (error) {
-            console.error("Error loading fasting state:", error);
-            // Reset to defaults on error
-            loadedPlan = getDefaultPlan();
-            loadedPhase = 'idle';
-            loadedStartTime = null;
-            localStorage.removeItem('nutri_fastingPlan');
-            localStorage.removeItem('nutri_fastingCurrentPhase');
-            localStorage.removeItem('nutri_fastingPhaseStartTime');
-             updateDailyFastingRecord(todayStr, undefined); // Clear record on error
+        // Validate loaded data
+        if (!fastingPlans[loadedPlan.key as FastingPlanKey]) {
+            loadedPlan = getDefaultPlan(); // Reset if plan key is invalid
         }
+        if (!['idle', 'fasting', 'eating'].includes(loadedPhase)) {
+            loadedPhase = 'idle'; // Reset if phase is invalid
+        }
+         if (isNaN(loadedStartTime ?? NaN)) {
+            loadedStartTime = null; // Reset if start time is invalid
+         }
+
+        // If a phase was active, check if it should have ended while the app was closed
+         if (loadedPhase !== 'idle' && loadedStartTime !== null) {
+             const phaseDurationHours = loadedPhase === 'fasting' ? loadedPlan.fastingHours : loadedPlan.eatingHours;
+             const phaseDurationMs = phaseDurationHours * 60 * 60 * 1000;
+             const expectedEndTime = loadedStartTime + phaseDurationMs;
+
+             if (Date.now() >= expectedEndTime) {
+                // Phase ended while closed. Ideally, calculate how many cycles were missed.
+                // Simplification: Just set to idle or the *next* logical phase based on schedule (complex).
+                // For now, simplest is to revert to idle to avoid incorrect state.
+                 console.log("Fasting phase ended while app was closed. Resetting to idle.");
+                 loadedPhase = 'idle';
+                 loadedStartTime = null;
+                 // Clear calendar record for today if resetting
+                  updateDailyFastingRecord(todayStr, undefined);
+             }
+         }
+
+
+    } catch (error) {
+        console.error("Error loading fasting state:", error);
+        // Reset to defaults on error
+        loadedPlan = getDefaultPlan();
+        loadedPhase = 'idle';
+        loadedStartTime = null;
+        localStorage.removeItem('nutri_fastingPlan');
+        localStorage.removeItem('nutri_fastingCurrentPhase');
+        localStorage.removeItem('nutri_fastingPhaseStartTime');
+         updateDailyFastingRecord(todayStr, undefined); // Clear record on error
     }
 
     setPlan(loadedPlan);
     setCurrentPhase(loadedPhase);
     setPhaseStartTime(loadedStartTime);
     setIsLoading(false);
-  }, [todayStr]); // todayStr is derived from new Date(), ensure it's stable or handled correctly if needed across renders
+  }, [isMounted, todayStr]); // Depend on isMounted
 
 
   // Save state to localStorage and update calendar record
   React.useEffect(() => {
-     // Ensure localStorage is accessed only client-side
-    if (!isLoading && typeof window !== 'undefined') {
+     // Ensure localStorage is accessed only client-side after mount
+    if (!isLoading && isMounted) {
       localStorage.setItem('nutri_fastingPlan', JSON.stringify(plan));
       localStorage.setItem('nutri_fastingCurrentPhase', currentPhase);
       if (phaseStartTime !== null) {
@@ -224,16 +226,16 @@ export default function FastingTracker() {
         updateDailyFastingRecord(todayStr, undefined); // Remove mark if stopped
       }
     }
-  }, [plan, currentPhase, phaseStartTime, isLoading, todayStr]);
+  }, [plan, currentPhase, phaseStartTime, isLoading, isMounted, todayStr]); // Depend on isMounted
 
 
     // Timer logic using Date object after hydration
   React.useEffect(() => {
     // Ensure this runs only on the client and hydration is complete
-    if (isLoading || typeof window === 'undefined' || currentPhase === 'idle' || phaseStartTime === null) {
+    if (isLoading || !isMounted || currentPhase === 'idle' || phaseStartTime === null) {
       setRemainingTime(null);
       setProgress(0);
-      return; // Don't run timer if idle or loading or on server
+      return; // Don't run timer if idle, loading, not mounted or on server
     }
 
     const calculateRemaining = () => {
@@ -291,10 +293,11 @@ export default function FastingTracker() {
     // Cleanup interval on unmount or when phase changes
     return () => clearInterval(intervalId);
 
-  }, [currentPhase, phaseStartTime, plan, isLoading, toast]); // Added toast to dependency array
+  }, [currentPhase, phaseStartTime, plan, isLoading, isMounted, toast, todayStr]); // Added isMounted and todayStr
 
 
   const startFast = () => {
+     if (!isMounted) return; // Guard against calling before mount
     const now = Date.now();
     const currentDayStr = format(new Date(now), 'yyyy-MM-dd');
     setCurrentPhase('fasting');
@@ -304,6 +307,7 @@ export default function FastingTracker() {
   };
 
   const startEating = () => {
+     if (!isMounted) return; // Guard against calling before mount
     const now = Date.now();
      const currentDayStr = format(new Date(now), 'yyyy-MM-dd');
     setCurrentPhase('eating');
@@ -313,6 +317,7 @@ export default function FastingTracker() {
   };
 
   const stopCycle = () => {
+     if (!isMounted) return; // Guard against calling before mount
      const currentDayStr = format(new Date(), 'yyyy-MM-dd');
     setCurrentPhase('idle');
     setPhaseStartTime(null);
@@ -324,6 +329,7 @@ export default function FastingTracker() {
 
   // Function to handle saving settings from the dialog
   const handleSaveSettings = (newPlanKey: FastingPlanKey, newEatingStartTime: string) => {
+     if (!isMounted) return; // Guard against calling before mount
     const newPlanDetails = fastingPlans[newPlanKey];
     const updatedPlan: FastingPlan = {
       key: newPlanKey,
@@ -375,7 +381,7 @@ export default function FastingTracker() {
   };
 
   const getPhaseEndTime = (): string | null => {
-     if (!phaseStartTime || currentPhase === 'idle') return null;
+     if (!phaseStartTime || currentPhase === 'idle' || !isMounted) return null; // Check mounted
      const durationHours = currentPhase === 'fasting' ? plan.fastingHours : plan.eatingHours;
      const endTime = new Date(phaseStartTime + durationHours * 60 * 60 * 1000);
      return endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -383,8 +389,8 @@ export default function FastingTracker() {
 
   const phaseEndTimeString = getPhaseEndTime();
 
-  // Render null or placeholder during SSR or before hydration
-  if (typeof window === 'undefined' || notificationPermission === null) {
+  // Render null or placeholder during SSR or before hydration/mount
+  if (!isMounted || isLoading) {
     return (
         <Card className="shadow-lg overflow-hidden w-full">
              <CardHeader>
@@ -427,7 +433,7 @@ export default function FastingTracker() {
                             onClick={requestNotificationPermission}
                             aria-label={notificationPermission === 'granted' ? "Notifications Enabled" : "Enable Notifications"}
                             className={cn(notificationPermission === 'denied' && "text-destructive hover:text-destructive")}
-                            disabled={!('Notification' in window)} // Disable if not supported
+                            disabled={typeof window === 'undefined' || !('Notification' in window)} // Disable if not supported
                         >
                             {notificationPermission === 'granted' ? <Bell className="h-5 w-5 text-primary" /> : <BellOff className="h-5 w-5" />}
                           </Button>
@@ -436,6 +442,7 @@ export default function FastingTracker() {
                          <p>
                             {notificationPermission === 'granted' ? "Phase end notifications are enabled." :
                              notificationPermission === 'denied' ? "Notifications blocked by browser." :
+                             typeof window !== 'undefined' && !('Notification' in window) ? "Notifications not supported." :
                              "Click to enable phase end notifications."}
                          </p>
                       </TooltipContent>
@@ -465,10 +472,7 @@ export default function FastingTracker() {
              </div>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-4 py-8"> {/* Added padding */}
-             {isLoading ? (
-               <p>Loading timer...</p>
-             ) : (
-                <>
+
                   <div className="relative h-48 w-48"> {/* Increased size */}
                        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 36 36">
                           <path
@@ -508,13 +512,10 @@ export default function FastingTracker() {
                           )}
                       </div>
                    </div>
-                </>
-             )}
+
           </CardContent>
           <CardFooter className="flex justify-center gap-2 bg-muted/50 p-4"> {/* Added background and padding */}
-            {isLoading ? (
-                <Button disabled size="lg" className="flex-grow">Loading...</Button> // Increased size
-            ) : currentPhase === 'idle' ? (
+             {currentPhase === 'idle' ? (
               <Button onClick={startFast} className="flex-grow" size="lg"> {/* Increased size */}
                 <Play className="mr-2 h-5 w-5" /> Start Fast
               </Button>

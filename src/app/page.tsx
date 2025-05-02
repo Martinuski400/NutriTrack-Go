@@ -33,7 +33,7 @@ const DEFAULT_CALORIE_GOAL = 2000;
 const DEFAULT_WATER_GOAL = 2000;
 
 export default function HomePage() {
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(true); // Start as true
   // Today's data states
   const [todayCalories, setTodayCalories] = React.useState(0);
   const [calorieGoal, setCalorieGoal] = React.useState(DEFAULT_CALORIE_GOAL);
@@ -50,43 +50,40 @@ export default function HomePage() {
 
   // Load initial data and set up listeners/intervals if needed
   React.useEffect(() => {
-    // Ensure this runs only on the client side
-    if (typeof window === 'undefined') {
-        setIsLoading(false);
-        return;
-    }
-
-    setIsLoading(true);
+    // This effect runs only on the client after mount
     const todayStr = format(new Date(), 'yyyy-MM-dd');
 
     // Load goals
     const savedCalorieGoal = localStorage.getItem('nutri_calorieGoal');
     const savedWaterGoal = localStorage.getItem('nutri_waterGoal');
-    setCalorieGoal(savedCalorieGoal ? parseInt(savedCalorieGoal, 10) : DEFAULT_CALORIE_GOAL);
-    setWaterGoal(savedWaterGoal ? parseInt(savedWaterGoal, 10) : DEFAULT_WATER_GOAL);
+    const currentCalorieGoal = savedCalorieGoal ? parseInt(savedCalorieGoal, 10) : DEFAULT_CALORIE_GOAL;
+    const currentWaterGoal = savedWaterGoal ? parseInt(savedWaterGoal, 10) : DEFAULT_WATER_GOAL;
+    setCalorieGoal(currentCalorieGoal);
+    setWaterGoal(currentWaterGoal);
 
     // Load today's totals (or reset if new day)
     const lastCalorieDate = localStorage.getItem('nutri_lastCalorieEntryDate');
     const lastWaterDate = localStorage.getItem('nutri_lastWaterEntryDate');
 
+    let currentTodayCalories = 0;
     if (lastCalorieDate === todayStr) {
         const savedTotal = localStorage.getItem('nutri_calorieTotal');
-        setTodayCalories(savedTotal ? parseInt(savedTotal, 10) : 0);
+        currentTodayCalories = savedTotal ? parseInt(savedTotal, 10) : 0;
     } else {
         localStorage.setItem('nutri_calorieTotal', '0'); // Reset for new day
-        setTodayCalories(0);
         localStorage.setItem('nutri_lastCalorieEntryDate', todayStr);
     }
+    setTodayCalories(currentTodayCalories);
 
+    let currentTodayWater = 0;
     if (lastWaterDate === todayStr) {
         const savedTotal = localStorage.getItem('nutri_waterIntake');
-        setTodayWater(savedTotal ? parseInt(savedTotal, 10) : 0);
+        currentTodayWater = savedTotal ? parseInt(savedTotal, 10) : 0;
     } else {
         localStorage.setItem('nutri_waterIntake', '0'); // Reset for new day
-        setTodayWater(0);
         localStorage.setItem('nutri_lastWaterEntryDate', todayStr);
     }
-
+    setTodayWater(currentTodayWater);
 
     // Load historical data for calendar (simplified)
     const allCalorieData = JSON.parse(localStorage.getItem('nutri_daily_calories') || '{}');
@@ -95,20 +92,9 @@ export default function HomePage() {
     const allFastingDataRaw = JSON.parse(localStorage.getItem('nutri_fasting_history') || '{}'); // Changed from array to object
     const allFastingData = typeof allFastingDataRaw === 'object' && allFastingDataRaw !== null ? allFastingDataRaw : {};
 
-    // Add today's data to historical if missing
-     if (!allCalorieData[todayStr]) {
-        allCalorieData[todayStr] = { total: todayCalories, goal: calorieGoal };
-     } else {
-        // Ensure today's entry reflects current state
-        allCalorieData[todayStr].total = todayCalories;
-        allCalorieData[todayStr].goal = calorieGoal;
-     }
-     if (!allWaterData[todayStr]) {
-         allWaterData[todayStr] = { total: todayWater, goal: waterGoal };
-     } else {
-         allWaterData[todayStr].total = todayWater;
-         allWaterData[todayStr].goal = waterGoal;
-     }
+    // Ensure today's data reflects current state in historical data
+    allCalorieData[todayStr] = { total: currentTodayCalories, goal: currentCalorieGoal };
+    allWaterData[todayStr] = { total: currentTodayWater, goal: currentWaterGoal };
 
     setCalendarData({
         calories: allCalorieData,
@@ -116,14 +102,15 @@ export default function HomePage() {
         fasting: allFastingData,
     });
 
+    // Mark loading as complete *after* all initial data is loaded/set
     setIsLoading(false);
 
-  }, []); // Initial load
+  }, []); // Empty dependency array: run once on mount
 
   // Update calendar data when today's values change
   React.useEffect(() => {
     // Ensure this runs only on the client side and after initial load
-     if (isLoading || typeof window === 'undefined') return;
+     if (isLoading) return;
 
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const updatedCalories = {
@@ -145,7 +132,7 @@ export default function HomePage() {
      localStorage.setItem('nutri_daily_calories', JSON.stringify(updatedCalories));
      localStorage.setItem('nutri_daily_water', JSON.stringify(updatedWater));
 
-  }, [todayCalories, calorieGoal, todayWater, waterGoal, isLoading, calendarData.calories, calendarData.water]); // Added dependencies
+  }, [todayCalories, calorieGoal, todayWater, waterGoal, isLoading]); // Removed history refs
 
 
   // Calendar modifiers
@@ -188,8 +175,8 @@ export default function HomePage() {
   const selectedFastingData = selectedDateStr ? calendarData.fasting[selectedDateStr] : null;
 
 
-  // Display Loading state
-  if (isLoading && typeof window !== 'undefined') {
+  // Display Loading state - Separate return for loading state
+  if (isLoading) {
     return (
         <div className="container mx-auto max-w-md p-4 pb-20 flex items-center justify-center min-h-screen">
             <p className="text-muted-foreground">Loading dashboard...</p>
@@ -197,7 +184,7 @@ export default function HomePage() {
     );
   }
 
-
+ // Main component return when not loading
   return (
     <div className="container mx-auto max-w-md p-4 pb-20"> {/* Mobile-first max-width */}
       <h1 className="mb-6 text-center text-3xl font-bold">Dashboard</h1>
@@ -220,13 +207,13 @@ export default function HomePage() {
                   <Target className="h-5 w-5 text-primary" />
                 </CardTitle>
                 <CardDescription>
-                  Goal: {isLoading ? '...' : `${calorieGoal} kcal`}
+                  Goal: {calorieGoal} kcal
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Progress value={calorieProgress} aria-label={`${calorieProgress.toFixed(0)}% of calorie goal`} className="h-2" />
                 <p className="text-center font-semibold">
-                  {isLoading ? '...' : `${todayCalories} / ${calorieGoal} kcal`}
+                  {todayCalories} / {calorieGoal} kcal
                 </p>
               </CardContent>
                <CardFooter>
@@ -244,13 +231,13 @@ export default function HomePage() {
                   <GlassWater className="h-5 w-5 text-blue-500" />
                 </CardTitle>
                 <CardDescription>
-                  Goal: {isLoading ? '...' : `${waterGoal} ml`}
+                  Goal: {waterGoal} ml
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Progress value={waterProgress} aria-label={`${waterProgress.toFixed(0)}% of water goal`} className="h-2 [&>div]:bg-blue-500" />
                 <p className="text-center font-semibold">
-                  {isLoading ? '...' : `${todayWater} / ${waterGoal} ml`}
+                  {todayWater} / {waterGoal} ml
                 </p>
               </CardContent>
                <CardFooter>
@@ -387,4 +374,3 @@ export default function HomePage() {
     </div>
   );
 }
-
