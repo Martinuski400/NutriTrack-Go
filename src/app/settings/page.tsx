@@ -1,9 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { Globe } from 'lucide-react'; // Import Globe icon
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,9 +36,9 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator'; // Import Separator
+import { Separator } from '@/components/ui/separator';
 
-// Activity levels definition (moved from register page)
+// Activity levels definition
 const activityLevels = {
   sedentary: { label: 'Sedentary (little or no exercise)', value: 1.2 },
   lightlyActive: { label: 'Lightly active (light exercise 1-3 days/wk)', value: 1.375 },
@@ -46,6 +48,14 @@ const activityLevels = {
 } as const;
 
 type ActivityLevelKey = keyof typeof activityLevels;
+
+// Language options
+const languages = {
+    en: { label: 'English', code: 'en' },
+    es: { label: 'Español', code: 'es' },
+    ca: { label: 'Català', code: 'ca' },
+} as const;
+type LanguageCode = keyof typeof languages;
 
 
 // Combined schema for settings and profile
@@ -86,20 +96,24 @@ const settingsSchema = z.object({
     .int()
     .positive('Goal must be a positive number.')
     .min(1, 'Goal must be at least 1 kcal.'),
-    // Add other settings here if needed
-    // e.g., enableNotifications: z.boolean().default(false),
+
+  // Language field
+  language: z.enum(Object.keys(languages) as [LanguageCode, ...LanguageCode[]], {
+     required_error: 'Please select a language.'
+   }),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
 
 const DEFAULT_WATER_GOAL = 2000; // Default goal in ml
 const DEFAULT_CALORIE_GOAL = 2000; // Default goal in kcal
+const DEFAULT_LANGUAGE: LanguageCode = 'en'; // Default language
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(true);
   const [calculatedCalories, setCalculatedCalories] = React.useState<number | null>(null);
-
+  const [currentLanguage, setCurrentLanguage] = React.useState<LanguageCode>(DEFAULT_LANGUAGE); // State for language
 
    const form = useForm<SettingsForm>({
      resolver: zodResolver(settingsSchema),
@@ -109,12 +123,14 @@ export default function SettingsPage() {
         let profileData: Partial<SettingsForm> = {};
         let waterGoal = DEFAULT_WATER_GOAL;
         let calorieGoal = DEFAULT_CALORIE_GOAL;
+        let language = DEFAULT_LANGUAGE;
 
         if (typeof window !== 'undefined') {
             const savedProfile = localStorage.getItem('nutri_userProfile');
             const savedWaterGoal = localStorage.getItem('nutri_waterGoal');
             const savedCalorieGoal = localStorage.getItem('nutri_calorieGoal');
-            const savedCalculatedGoal = localStorage.getItem('nutri_calculatedCalorieGoal'); // Store calculated separately
+            const savedCalculatedGoal = localStorage.getItem('nutri_calculatedCalorieGoal');
+            const savedLanguage = localStorage.getItem('nutri_language'); // Load language
 
             if (savedProfile) {
                 try {
@@ -124,16 +140,20 @@ export default function SettingsPage() {
             if (savedWaterGoal) {
                 waterGoal = parseInt(savedWaterGoal, 10);
             }
-            if (savedCalorieGoal) { // User-set goal takes precedence
+            if (savedCalorieGoal) {
                 calorieGoal = parseInt(savedCalorieGoal, 10);
-            } else if (savedCalculatedGoal) { // Fallback to calculated if no user goal set
+            } else if (savedCalculatedGoal) {
                  calorieGoal = parseInt(savedCalculatedGoal, 10);
             }
             if (savedCalculatedGoal) {
                 setCalculatedCalories(parseInt(savedCalculatedGoal, 10));
             }
+             // Set language, ensure it's a valid key
+            if (savedLanguage && languages[savedLanguage as LanguageCode]) {
+                language = savedLanguage as LanguageCode;
+            }
         }
-
+        setCurrentLanguage(language); // Update state
         setIsLoading(false);
         return {
             age: profileData.age,
@@ -143,7 +163,7 @@ export default function SettingsPage() {
             activityLevel: profileData.activityLevel,
             waterGoal: waterGoal,
             calorieGoal: calorieGoal,
-            // enableNotifications: false,
+            language: language, // Set default language for form
         }
      }
    });
@@ -167,18 +187,13 @@ export default function SettingsPage() {
   function onSubmit(values: SettingsForm) {
     // Recalculate TDEE based on current form values
     const tdee = calculateTDEE(values);
-    let calorieGoalToSave = values.calorieGoal; // Use user-set goal by default
+    let calorieGoalToSave = values.calorieGoal;
 
      if (tdee !== null) {
         setCalculatedCalories(tdee);
         localStorage.setItem('nutri_calculatedCalorieGoal', tdee.toString());
-         // If the user hasn't manually set a goal, use the calculated one
-         // This logic might need refinement based on exact desired UX
-         // For now, we save both the user's input `calorieGoal` and the calculated `tdee`
-         // The app primarily uses `nutri_calorieGoal` which the user can override here.
-         // We'll save the calculated value for display purposes.
     } else {
-        setCalculatedCalories(null); // Clear if calculation not possible
+        setCalculatedCalories(null);
         localStorage.removeItem('nutri_calculatedCalorieGoal');
     }
 
@@ -194,17 +209,29 @@ export default function SettingsPage() {
         };
         localStorage.setItem('nutri_userProfile', JSON.stringify(profileToSave));
         localStorage.setItem('nutri_waterGoal', values.waterGoal.toString());
-        localStorage.setItem('nutri_calorieGoal', calorieGoalToSave.toString()); // Save user-set or default
+        localStorage.setItem('nutri_calorieGoal', calorieGoalToSave.toString());
+        localStorage.setItem('nutri_language', values.language); // Save language
+
+        setCurrentLanguage(values.language); // Update language state
 
         let toastDescription = `Preferences updated.`;
         if (tdee !== null) {
              toastDescription += ` Estimated daily need: ${tdee} kcal.`;
         }
+        // Inform user about language change (actual UI text won't change without full i18n)
+        toastDescription += ` Language set to ${languages[values.language].label}. Reload might be needed for full effect.`;
+
 
         toast({
-            title: 'Settings Saved',
+            title: 'Account Settings Saved', // Updated title
             description: toastDescription,
         });
+
+        // NOTE: Actual text translation requires a full localization setup (e.g., react-i18next).
+        // This just saves the preference.
+         // Optional: Force reload to apply changes if needed by localization library
+         // window.location.reload();
+
     } catch (error) {
          console.error("Failed to save settings to localStorage", error);
          toast({
@@ -221,7 +248,7 @@ export default function SettingsPage() {
     const tdee = calculateTDEE(values);
     if (tdee !== null) {
       setCalculatedCalories(tdee);
-      form.setValue('calorieGoal', tdee, { shouldValidate: true }); // Update the form field as well
+      form.setValue('calorieGoal', tdee, { shouldValidate: true });
        localStorage.setItem('nutri_calculatedCalorieGoal', tdee.toString());
       toast({
         title: 'Calorie Goal Updated',
@@ -238,8 +265,8 @@ export default function SettingsPage() {
 
 
   return (
-    <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding bottom */}
-      <h1 className="mb-6 text-center text-2xl font-bold">Settings & Profile</h1>
+    <div className="container mx-auto max-w-md p-4 pb-20">
+      <h1 className="mb-6 text-center text-2xl font-bold">Account & Profile</h1> {/* Updated Title */}
 
       {isLoading ? (
             <Card className="shadow-lg">
@@ -247,7 +274,7 @@ export default function SettingsPage() {
                     <CardTitle>Loading...</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>Loading your settings and profile...</p>
+                    <p>Loading your account details...</p>
                 </CardContent>
             </Card>
         ) : (
@@ -311,8 +338,8 @@ export default function SettingsPage() {
                                  <FormControl>
                                    <RadioGroup
                                      onValueChange={field.onChange}
-                                     value={field.value} // Use value instead of defaultValue
-                                     className="flex flex-row space-x-4" // Display horizontally
+                                     value={field.value}
+                                     className="flex flex-row space-x-4"
                                    >
                                      <FormItem className="flex items-center space-x-2 space-y-0">
                                        <FormControl>
@@ -344,7 +371,7 @@ export default function SettingsPage() {
                              <FormLabel>Activity Level</FormLabel>
                              <Select
                                onValueChange={field.onChange}
-                               value={field.value} // Use value
+                               value={field.value}
                              >
                                <FormControl>
                                  <SelectTrigger>
@@ -416,41 +443,47 @@ export default function SettingsPage() {
                     </CardContent>
                  </Card>
 
-
-                 {/* Preferences Section (Example) */}
-                 {/* <Card className="shadow-lg">
+                 {/* Preferences Section (Added Language) */}
+                 <Card className="shadow-lg">
                      <CardHeader>
-                        <CardTitle>Preferences</CardTitle>
+                        <CardTitle className="flex items-center gap-2"> <Globe className="h-5 w-5" /> Preferences</CardTitle>
                      </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                          <FormField
                             control={form.control}
-                            name="enableNotifications"
+                            name="language"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                                <div className="space-y-0.5">
-                                    <FormLabel className="text-base">
-                                    Enable Notifications
-                                    </FormLabel>
-                                    <FormDescription>
-                                    Receive reminders. (Requires setup)
-                                    </FormDescription>
-                                </div>
-                                <FormControl>
-                                    <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled // Disable until implemented
-                                    />
-                                </FormControl>
+                                <FormItem>
+                                <FormLabel>Language</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                >
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select language" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {Object.entries(languages).map(([code, { label }]) => (
+                                        <SelectItem key={code} value={code}>
+                                        {label}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                    Choose the application language. (UI may need reload)
+                                </FormDescription>
+                                <FormMessage />
                                 </FormItem>
                             )}
-                            />
+                          />
                     </CardContent>
-                 </Card> */}
+                 </Card>
 
 
-                 <Button type="submit" className="w-full !mt-8">Save Settings & Profile</Button>
+                 <Button type="submit" className="w-full !mt-8">Save Account Settings</Button> {/* Updated Button Text */}
                </form>
              </Form>
         )}

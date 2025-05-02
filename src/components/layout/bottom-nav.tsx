@@ -3,13 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Settings, BookOpenCheck } from 'lucide-react'; // Simplified icons
+import { Home, User, BookOpenCheck } from 'lucide-react'; // Changed Settings to User
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: Home }, // Changed href to '/'
+  { href: '/', label: 'Home', icon: Home },
   { href: '/recipes', label: 'Recipes', icon: BookOpenCheck },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/settings', label: 'Account', icon: User }, // Changed label and icon
 ];
 
 export default function BottomNav() {
