@@ -157,21 +157,32 @@ export default function RecipesPage() {
     };
 
     const toggleFavorite = (id: string) => {
+        let targetRecipe: Recipe | undefined; // Variable to hold the recipe for the toast
+
         setRecipes(prevRecipes => {
             const updated = prevRecipes.map(recipe =>
                 recipe.id === id ? { ...recipe, isFavorite: !recipe.isFavorite } : recipe
             );
-            const targetRecipe = updated.find(r => r.id === id);
-            saveFavorites(updated); // Save to localStorage
-             toast({
-                title: targetRecipe?.isFavorite ? "Added to Favorites" : "Removed from Favorites",
-                description: `${targetRecipe?.name}`,
-            });
-            return updated;
+            // Find the recipe inside the updater to ensure we use the correct favorite status
+            targetRecipe = updated.find(r => r.id === id);
+            saveFavorites(updated); // Save to localStorage here as it depends on 'updated'
+            return updated; // Return the new state
         });
 
-        // If the modal is open and the toggled recipe is the selected one, update its state
-        if (selectedRecipe && selectedRecipe.id === id) {
+        // Call toast *after* setRecipes has been called, using the targetRecipe found above
+        if (targetRecipe) {
+            toast({
+                title: targetRecipe.isFavorite ? "Added to Favorites" : "Removed from Favorites",
+                description: `${targetRecipe.name}`,
+            });
+        }
+
+        // Update selectedRecipe state *after* setRecipes has been called
+        // Use the targetRecipe's favorite status if it's the selected one
+        if (selectedRecipe && selectedRecipe.id === id && targetRecipe) {
+             setSelectedRecipe(prev => prev ? { ...prev, isFavorite: targetRecipe!.isFavorite } : null);
+        } else if (selectedRecipe && selectedRecipe.id === id && !targetRecipe) {
+            // Edge case: if recipe somehow not found after update (shouldn't happen), fallback
             setSelectedRecipe(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
         }
     };
