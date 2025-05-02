@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils'; // Import cn utility
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip
+import { format } from 'date-fns'; // Import format
 
 // Define common fasting plans
 const fastingPlans = {
@@ -60,6 +62,13 @@ interface RemainingTime {
   totalSeconds: number;
 }
 
+interface FastingHistoryEntry {
+    date: string; // YYYY-MM-DD
+    planKey?: FastingPlanKey;
+    // Add more details if needed, e.g., completed: boolean, startTime: number, endTime: number
+}
+
+
 const DEFAULT_PLAN_KEY: FastingPlanKey = '16:8';
 const DEFAULT_EATING_START_TIME = '12:00'; // Default eating window starts at noon
 
@@ -78,21 +87,32 @@ const showPhaseEndNotification = (currentPhase: FastingPhase, nextPhase: Fasting
                 body: `Your ${currentPhase} phase is over. Starting ${nextPhase} phase now.`,
                 icon: '/icons/icon-192x192.png', // Optional: Add an icon
                 badge: '/icons/icon-192x192.png', // Optional: Badge for Android
-                // Note: Continuous real-time updates in the notification itself are not feasible for PWAs when closed.
-                // This notification serves as an alert for the phase change.
                 tag: 'fasting-phase-end', // Allows replacing previous notifications with the same tag
                 renotify: true, // Notify even if a notification with the same tag exists
             });
         });
     } else if ('Notification' in window && Notification.permission === 'default') {
         console.log('Notification permission not yet requested or denied.');
-        // Optionally prompt the user again here if desired, but avoid being intrusive.
     } else if ('Notification' in window && Notification.permission === 'denied') {
         console.log('Notification permission was denied.');
     } else {
         console.log('Notifications not supported by this browser or service worker not available.');
     }
 };
+
+// --- Persistence for Calendar ---
+const updateDailyFastingRecord = (date: string, planKey?: FastingPlanKey) => {
+    // Ensure localStorage is accessed only client-side
+    if (typeof window === 'undefined') return;
+    const dailyRecords: { [date: string]: FastingHistoryEntry } = JSON.parse(localStorage.getItem('nutri_fasting_history') || '{}');
+    if (planKey) {
+        dailyRecords[date] = { date, planKey }; // Add or update entry
+    } else {
+        delete dailyRecords[date]; // Remove entry if fasting stopped
+    }
+    localStorage.setItem('nutri_fasting_history', JSON.stringify(dailyRecords));
+};
+// --- End Persistence ---
 
 export default function FastingTracker() {
   const { toast } = useToast();
@@ -104,82 +124,116 @@ export default function FastingTracker() {
   const [remainingTime, setRemainingTime] = React.useState<RemainingTime | null>(null);
   const [progress, setProgress] = React.useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
-  const [notificationPermission, setNotificationPermission] = React.useState<NotificationPermission>('default');
+  // Initialize with null, check permission client-side only
+  const [notificationPermission, setNotificationPermission] = React.useState<NotificationPermission | null>(null);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
 
    // Check and store notification permission status on mount
    React.useEffect(() => {
+     // Ensure this runs only on the client
      if ('Notification' in window) {
        setNotificationPermission(Notification.permission);
      }
-     setIsLoading(false); // Moved loading state update here
    }, []);
 
 
   // Load state from localStorage
   React.useEffect(() => {
-    // setIsLoading(true); // Already set in the first effect
+    setIsLoading(true);
     let loadedPlan = getDefaultPlan();
     let loadedPhase: FastingPhase = 'idle';
     let loadedStartTime: number | null = null;
 
-    try {
-        const savedPlan = localStorage.getItem('nutri_fastingPlan');
-        const savedPhase = localStorage.getItem('nutri_fastingCurrentPhase');
-        const savedStartTime = localStorage.getItem('nutri_fastingPhaseStartTime');
+    // Ensure localStorage is accessed only client-side
+    if (typeof window !== 'undefined') {
+        try {
+            const savedPlan = localStorage.getItem('nutri_fastingPlan');
+            const savedPhase = localStorage.getItem('nutri_fastingCurrentPhase');
+            const savedStartTime = localStorage.getItem('nutri_fastingPhaseStartTime');
 
-        if (savedPlan) loadedPlan = JSON.parse(savedPlan);
-        if (savedPhase) loadedPhase = savedPhase as FastingPhase;
-        if (savedStartTime) loadedStartTime = parseInt(savedStartTime, 10);
+            if (savedPlan) loadedPlan = JSON.parse(savedPlan);
+            if (savedPhase) loadedPhase = savedPhase as FastingPhase;
+            if (savedStartTime) loadedStartTime = parseInt(savedStartTime, 10);
 
-        // Validate loaded data
-        if (!fastingPlans[loadedPlan.key as FastingPlanKey]) {
-            loadedPlan = getDefaultPlan(); // Reset if plan key is invalid
+            // Validate loaded data
+            if (!fastingPlans[loadedPlan.key as FastingPlanKey]) {
+                loadedPlan = getDefaultPlan(); // Reset if plan key is invalid
+            }
+            if (!['idle', 'fasting', 'eating'].includes(loadedPhase)) {
+                loadedPhase = 'idle'; // Reset if phase is invalid
+            }
+             if (isNaN(loadedStartTime ?? NaN)) {
+                loadedStartTime = null; // Reset if start time is invalid
+             }
+
+            // If a phase was active, check if it should have ended while the app was closed
+             if (loadedPhase !== 'idle' && loadedStartTime !== null) {
+                 const phaseDurationHours = loadedPhase === 'fasting' ? loadedPlan.fastingHours : loadedPlan.eatingHours;
+                 const phaseDurationMs = phaseDurationHours * 60 * 60 * 1000;
+                 const expectedEndTime = loadedStartTime + phaseDurationMs;
+
+                 if (Date.now() >= expectedEndTime) {
+                    // Phase ended while closed. Ideally, calculate how many cycles were missed.
+                    // Simplification: Just set to idle or the *next* logical phase based on schedule (complex).
+                    // For now, simplest is to revert to idle to avoid incorrect state.
+                     console.log("Fasting phase ended while app was closed. Resetting to idle.");
+                     loadedPhase = 'idle';
+                     loadedStartTime = null;
+                     // Clear calendar record for today if resetting
+                      updateDailyFastingRecord(todayStr, undefined);
+                 }
+             }
+
+
+        } catch (error) {
+            console.error("Error loading fasting state:", error);
+            // Reset to defaults on error
+            loadedPlan = getDefaultPlan();
+            loadedPhase = 'idle';
+            loadedStartTime = null;
+            localStorage.removeItem('nutri_fastingPlan');
+            localStorage.removeItem('nutri_fastingCurrentPhase');
+            localStorage.removeItem('nutri_fastingPhaseStartTime');
+             updateDailyFastingRecord(todayStr, undefined); // Clear record on error
         }
-        if (!['idle', 'fasting', 'eating'].includes(loadedPhase)) {
-            loadedPhase = 'idle'; // Reset if phase is invalid
-        }
-         if (isNaN(loadedStartTime ?? NaN)) {
-            loadedStartTime = null; // Reset if start time is invalid
-         }
-
-    } catch (error) {
-        console.error("Error loading fasting state:", error);
-        // Reset to defaults on error
-        loadedPlan = getDefaultPlan();
-        loadedPhase = 'idle';
-        loadedStartTime = null;
-        localStorage.removeItem('nutri_fastingPlan');
-        localStorage.removeItem('nutri_fastingCurrentPhase');
-        localStorage.removeItem('nutri_fastingPhaseStartTime');
     }
 
     setPlan(loadedPlan);
     setCurrentPhase(loadedPhase);
     setPhaseStartTime(loadedStartTime);
-    // setIsLoading(false); // Moved to the first effect
-  }, []); // Removed isLoading dependency
+    setIsLoading(false);
+  }, [todayStr]); // todayStr is derived from new Date(), ensure it's stable or handled correctly if needed across renders
 
 
-  // Save state to localStorage
+  // Save state to localStorage and update calendar record
   React.useEffect(() => {
-    if (!isLoading) {
+     // Ensure localStorage is accessed only client-side
+    if (!isLoading && typeof window !== 'undefined') {
       localStorage.setItem('nutri_fastingPlan', JSON.stringify(plan));
       localStorage.setItem('nutri_fastingCurrentPhase', currentPhase);
       if (phaseStartTime !== null) {
         localStorage.setItem('nutri_fastingPhaseStartTime', phaseStartTime.toString());
+        // Update calendar: Mark today if fasting or eating phase is active
+        if (currentPhase !== 'idle') {
+             updateDailyFastingRecord(todayStr, plan.key);
+        } else {
+             updateDailyFastingRecord(todayStr, undefined); // Remove mark if stopped
+        }
       } else {
         localStorage.removeItem('nutri_fastingPhaseStartTime');
+        updateDailyFastingRecord(todayStr, undefined); // Remove mark if stopped
       }
     }
-  }, [plan, currentPhase, phaseStartTime, isLoading]);
+  }, [plan, currentPhase, phaseStartTime, isLoading, todayStr]);
 
 
     // Timer logic using Date object after hydration
   React.useEffect(() => {
-    if (isLoading || currentPhase === 'idle' || phaseStartTime === null) {
+    // Ensure this runs only on the client and hydration is complete
+    if (isLoading || typeof window === 'undefined' || currentPhase === 'idle' || phaseStartTime === null) {
       setRemainingTime(null);
       setProgress(0);
-      return; // Don't run timer if idle or loading
+      return; // Don't run timer if idle or loading or on server
     }
 
     const calculateRemaining = () => {
@@ -188,6 +242,7 @@ export default function FastingTracker() {
       const phaseDurationMs = phaseDurationHours * 60 * 60 * 1000;
       const phaseEndTime = phaseStartTime + phaseDurationMs;
       const totalSecondsRemaining = Math.max(0, Math.round((phaseEndTime - now) / 1000));
+      const currentDayStr = format(new Date(now), 'yyyy-MM-dd'); // Get current day for calendar update
 
       if (totalSecondsRemaining === 0) {
         // Phase finished, transition to the next phase
@@ -197,8 +252,16 @@ export default function FastingTracker() {
          showPhaseEndNotification(currentPhase, nextPhase);
 
         // Update state
+        const newStartTime = phaseEndTime; // Start the new phase exactly when the old one ended
         setCurrentPhase(nextPhase);
-        setPhaseStartTime(phaseEndTime); // Start the new phase exactly when the old one ended
+        setPhaseStartTime(newStartTime);
+
+         // If the phase change crosses midnight, update the *new* day's calendar record
+        const newDayStr = format(new Date(newStartTime), 'yyyy-MM-dd');
+        if (newDayStr !== currentDayStr) {
+            updateDailyFastingRecord(newDayStr, plan.key);
+        }
+
 
          // Show toast notification
          toast({
@@ -216,6 +279,8 @@ export default function FastingTracker() {
 
         setRemainingTime({ hours, minutes, seconds, totalSeconds: totalSecondsRemaining });
         setProgress(currentProgress);
+         // Ensure today's calendar record is set while active
+        updateDailyFastingRecord(currentDayStr, plan.key);
       }
     };
 
@@ -226,29 +291,34 @@ export default function FastingTracker() {
     // Cleanup interval on unmount or when phase changes
     return () => clearInterval(intervalId);
 
-    // Exclude setRemainingTime and setProgress from deps as they are stable setters
   }, [currentPhase, phaseStartTime, plan, isLoading, toast]); // Added toast to dependency array
 
 
   const startFast = () => {
     const now = Date.now();
+    const currentDayStr = format(new Date(now), 'yyyy-MM-dd');
     setCurrentPhase('fasting');
     setPhaseStartTime(now);
+    updateDailyFastingRecord(currentDayStr, plan.key); // Update calendar on start
     toast({ title: 'Fast Started', description: `Your ${plan.fastingHours}-hour fast has begun.` });
   };
 
   const startEating = () => {
     const now = Date.now();
+     const currentDayStr = format(new Date(now), 'yyyy-MM-dd');
     setCurrentPhase('eating');
     setPhaseStartTime(now);
+     updateDailyFastingRecord(currentDayStr, plan.key); // Update calendar on start
     toast({ title: 'Eating Window Started', description: `Your ${plan.eatingHours}-hour eating window has begun.` });
   };
 
   const stopCycle = () => {
+     const currentDayStr = format(new Date(), 'yyyy-MM-dd');
     setCurrentPhase('idle');
     setPhaseStartTime(null);
     setRemainingTime(null);
     setProgress(0);
+    updateDailyFastingRecord(currentDayStr, undefined); // Remove calendar mark on stop
     toast({ title: 'Fasting Cycle Stopped', variant: 'destructive' });
   };
 
@@ -262,7 +332,7 @@ export default function FastingTracker() {
     };
     setPlan(updatedPlan);
 
-    // Optional: Reset the cycle when settings change to avoid confusion
+    // Stop the cycle when settings change to apply new plan on next start
     stopCycle();
 
     toast({ title: 'Settings Saved', description: `Fasting plan updated to ${newPlanDetails.label}. Cycle stopped.` });
@@ -271,7 +341,8 @@ export default function FastingTracker() {
 
    // Function to request notification permission
    const requestNotificationPermission = async () => {
-       if (!('Notification' in window)) {
+       // Ensure this runs only on the client
+       if (typeof window === 'undefined' || !('Notification' in window)) {
            toast({ title: 'Notifications Not Supported', description: 'Your browser does not support notifications.', variant: 'destructive' });
            return;
        }
@@ -312,9 +383,27 @@ export default function FastingTracker() {
 
   const phaseEndTimeString = getPhaseEndTime();
 
+  // Render null or placeholder during SSR or before hydration
+  if (typeof window === 'undefined' || notificationPermission === null) {
+    return (
+        <Card className="shadow-lg overflow-hidden w-full">
+             <CardHeader>
+                <CardTitle className="text-xl">Loading Fasting Timer...</CardTitle>
+             </CardHeader>
+             <CardContent className="flex flex-col items-center space-y-4 py-8">
+                 <p>Loading...</p>
+             </CardContent>
+             <CardFooter className="flex justify-center gap-2 bg-muted/50 p-4">
+                 <Button disabled size="lg" className="flex-grow">Loading...</Button>
+             </CardFooter>
+        </Card>
+    );
+  }
+
+
   return (
-    <div className="space-y-6">
-        <Card className="shadow-lg overflow-hidden"> {/* Added overflow hidden for consistency */}
+    // Removed outer div, Card is the root now
+        <Card className="shadow-lg overflow-hidden w-full"> {/* Added w-full */}
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
@@ -419,7 +508,6 @@ export default function FastingTracker() {
                           )}
                       </div>
                    </div>
-                  {/* Removed explicit Progress component */}
                 </>
              )}
           </CardContent>
@@ -449,10 +537,6 @@ export default function FastingTracker() {
             )}
           </CardFooter>
         </Card>
-
-      {/* Potential Future: History or Tips */}
-      {/* <Card>...</Card> */}
-    </div>
   );
 }
 
@@ -527,3 +611,4 @@ function FastingSettingsForm({ currentPlan, onSave }: FastingSettingsFormProps) 
     </div>
   );
 }
+

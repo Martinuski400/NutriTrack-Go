@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { GlassWater, Plus, Minus } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import Link from 'next/link'; // Import Link
 
 const DEFAULT_GOAL = 2000; // Default goal in ml (e.g., 2 liters)
 const ADD_AMOUNT = 250; // Default amount to add in ml (e.g., 1 glass)
@@ -52,9 +55,18 @@ export default function WaterPage() {
   const { toast } = useToast();
   const [currentIntake, setCurrentIntake] = React.useState(0);
   const [dailyGoal, setDailyGoal] = React.useState(DEFAULT_GOAL);
-  // Using simple state for history, replace with local storage or API later
   const [history, setHistory] = React.useState<WaterEntry[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+
+   // --- Persistence for Calendar ---
+   const updateDailyWaterRecord = (date: string, total: number, goal: number) => {
+     const dailyRecords = JSON.parse(localStorage.getItem('nutri_daily_water') || '{}');
+     dailyRecords[date] = { total, goal };
+     localStorage.setItem('nutri_daily_water', JSON.stringify(dailyRecords));
+   };
+   // --- End Persistence ---
 
 
   // Effect to load data (e.g., from localStorage) on mount
@@ -63,53 +75,70 @@ export default function WaterPage() {
     const savedGoal = localStorage.getItem('nutri_waterGoal');
     const savedHistory = localStorage.getItem('nutri_waterHistory');
     const lastEntryDate = localStorage.getItem('nutri_lastWaterEntryDate');
-    const today = new Date().toISOString().split('T')[0];
 
-    if (lastEntryDate !== today) {
+    const currentGoal = savedGoal ? parseInt(savedGoal, 10) : DEFAULT_GOAL;
+    setDailyGoal(currentGoal);
+
+    let intakeToday = 0;
+    if (lastEntryDate !== todayStr) {
       // Reset intake if it's a new day
        localStorage.setItem('nutri_waterIntake', '0');
        setCurrentIntake(0);
     } else if (savedIntake) {
-        setCurrentIntake(parseInt(savedIntake, 10));
+        intakeToday = parseInt(savedIntake, 10);
+        setCurrentIntake(intakeToday);
     }
+    localStorage.setItem('nutri_lastWaterEntryDate', todayStr);
 
-
-    if (savedGoal) {
-      setDailyGoal(parseInt(savedGoal, 10));
-    }
+    // Load history and ensure today is included/updated
+    let loadedHistory: WaterEntry[] = [];
     if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
+        try {
+            loadedHistory = JSON.parse(savedHistory);
+        } catch (e) { console.error("Error parsing water history", e); }
     }
 
-    localStorage.setItem('nutri_lastWaterEntryDate', today);
-    setIsLoading(false);
-  }, []);
+    // Ensure today's entry exists or is updated in the history used for the chart
+    const todayEntryIndex = loadedHistory.findIndex(entry => entry.date === todayStr);
+    if (todayEntryIndex > -1) {
+        loadedHistory[todayEntryIndex] = { date: todayStr, amount: intakeToday };
+    } else if (intakeToday > 0) { // Only add if intake > 0
+        loadedHistory.push({ date: todayStr, amount: intakeToday });
+    }
+    // Keep only last 7 days + today potentially, sorted
+    loadedHistory = loadedHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 7);
+    setHistory(loadedHistory);
 
-  // Effect to save data whenever intake, goal, or history changes
+    // Update the separate daily record for the calendar view
+    updateDailyWaterRecord(todayStr, intakeToday, currentGoal);
+
+
+    setIsLoading(false);
+  }, []); // Load once on mount
+
+  // Effect to save data whenever intake changes
   React.useEffect(() => {
     if (!isLoading) {
-        const today = new Date().toISOString().split('T')[0];
         localStorage.setItem('nutri_waterIntake', currentIntake.toString());
         localStorage.setItem('nutri_waterGoal', dailyGoal.toString());
 
-        // Update today's history entry or add a new one
-        const todayEntryIndex = history.findIndex(entry => entry.date === today);
+        // Update today's history entry for the chart
+        const todayEntryIndex = history.findIndex(entry => entry.date === todayStr);
         let updatedHistory = [...history];
         if (todayEntryIndex > -1) {
-            updatedHistory[todayEntryIndex] = { date: today, amount: currentIntake };
-        } else {
-            // Only add if intake is greater than 0
-            if (currentIntake > 0) {
-                updatedHistory.push({ date: today, amount: currentIntake });
-            }
+            updatedHistory[todayEntryIndex] = { date: todayStr, amount: currentIntake };
+        } else if (currentIntake > 0) { // Only add if intake > 0
+            updatedHistory.push({ date: todayStr, amount: currentIntake });
         }
-         // Keep only last 7 days + today potentially
+        // Keep only last 7 days + today potentially, sort
         updatedHistory = updatedHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 7);
-        setHistory(updatedHistory); // Update state as well
+        setHistory(updatedHistory); // Update state for chart
         localStorage.setItem('nutri_waterHistory', JSON.stringify(updatedHistory));
-        localStorage.setItem('nutri_lastWaterEntryDate', today);
+
+        // Update the separate daily record for the calendar view
+        updateDailyWaterRecord(todayStr, currentIntake, dailyGoal);
     }
-  }, [currentIntake, dailyGoal, isLoading]); // Removed history dependency to avoid loop
+  }, [currentIntake, dailyGoal, isLoading, todayStr, history]); // history included to ensure it's up-to-date
 
 
   const form = useForm<AddWaterForm>({
@@ -150,6 +179,7 @@ export default function WaterPage() {
 
   // Prepare data for the chart (last 7 days including today if available)
    const chartData = React.useMemo(() => {
+       // Ensure history is sorted correctly for the chart
        const sortedHistory = [...history].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
        return sortedHistory.map(entry => ({
            date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), // Format date for display
@@ -166,7 +196,12 @@ export default function WaterPage() {
    } satisfies ChartConfig;
 
   return (
-    <div className="container mx-auto max-w-md p-4">
+    <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding-bottom */}
+       <div className="mb-4">
+         <Button variant="outline" asChild>
+             <Link href="/home">← Back to Home</Link>
+         </Button>
+       </div>
       <h1 className="mb-6 text-center text-2xl font-bold">
         Water Tracker
       </h1>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Plus, Trash2, Target } from 'lucide-react'; // Added Target icon
+import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress'; // Import Progress
+import Link from 'next/link'; // Import Link
 
 const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'] as const;
 
@@ -52,6 +55,7 @@ type CalorieEntry = z.infer<typeof calorieEntrySchema>;
 
 interface LoggedEntry extends CalorieEntry {
   id: string;
+  date: string; // Add date to each entry
 }
 
 const DEFAULT_CALORIE_GOAL = 2000; // Fallback default
@@ -62,6 +66,66 @@ export default function CaloriesPage() {
   const [totalCalories, setTotalCalories] = React.useState(0);
   const [calorieGoal, setCalorieGoal] = React.useState<number | null>(null); // Use null initially
   const [isLoading, setIsLoading] = React.useState(true);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+
+    // --- Persistence for Calendar ---
+    const updateDailyCalorieRecord = (date: string, total: number, goal: number) => {
+      const dailyRecords = JSON.parse(localStorage.getItem('nutri_daily_calories') || '{}');
+      dailyRecords[date] = { total, goal };
+      localStorage.setItem('nutri_daily_calories', JSON.stringify(dailyRecords));
+    };
+    // --- End Persistence ---
+
+
+   // Load data on mount
+   React.useEffect(() => {
+     const savedEntries = localStorage.getItem('nutri_calorieEntries');
+     const savedTotal = localStorage.getItem('nutri_calorieTotal');
+     const savedGoal = localStorage.getItem('nutri_calorieGoal'); // Get goal from storage
+     const lastEntryDate = localStorage.getItem('nutri_lastCalorieEntryDate');
+
+     if (lastEntryDate !== todayStr) {
+       // Reset entries and total if it's a new day
+       localStorage.removeItem('nutri_calorieEntries');
+       localStorage.removeItem('nutri_calorieTotal');
+       setLoggedEntries([]);
+       setTotalCalories(0);
+       localStorage.setItem('nutri_lastCalorieEntryDate', todayStr);
+       // Clear today's record before setting new one
+        updateDailyCalorieRecord(todayStr, 0, savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL);
+     } else {
+       if (savedEntries) {
+          const parsedEntries = JSON.parse(savedEntries);
+          // Ensure loaded entries are only for today
+          setLoggedEntries(parsedEntries.filter((entry: LoggedEntry) => entry.date === todayStr));
+       }
+       if (savedTotal) {
+         setTotalCalories(parseInt(savedTotal, 10));
+       }
+     }
+
+     // Set goal from localStorage or default
+     const currentGoal = savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL;
+     setCalorieGoal(currentGoal);
+      // Update today's record on initial load too
+     updateDailyCalorieRecord(todayStr, totalCalories, currentGoal);
+
+
+     setIsLoading(false);
+   }, []); // Removed totalCalories dependency to avoid loop on init
+
+   // Save data whenever entries or total change
+   React.useEffect(() => {
+     if (!isLoading && calorieGoal !== null) {
+       // Filter entries to save only today's
+       const todaysEntries = loggedEntries.filter(entry => entry.date === todayStr);
+       localStorage.setItem('nutri_calorieEntries', JSON.stringify(todaysEntries));
+       localStorage.setItem('nutri_calorieTotal', totalCalories.toString());
+       // Save daily record for calendar
+       updateDailyCalorieRecord(todayStr, totalCalories, calorieGoal);
+     }
+   }, [loggedEntries, totalCalories, calorieGoal, isLoading, todayStr]);
 
   const form = useForm<CalorieEntry>({
     resolver: zodResolver(calorieEntrySchema),
@@ -72,47 +136,9 @@ export default function CaloriesPage() {
     },
   });
 
-   // Load data on mount
-   React.useEffect(() => {
-     const savedEntries = localStorage.getItem('nutri_calorieEntries');
-     const savedTotal = localStorage.getItem('nutri_calorieTotal');
-     const savedGoal = localStorage.getItem('nutri_calorieGoal'); // Get goal from storage
-     const lastEntryDate = localStorage.getItem('nutri_lastCalorieEntryDate');
-     const today = new Date().toISOString().split('T')[0];
-
-     if (lastEntryDate !== today) {
-       // Reset entries and total if it's a new day
-       localStorage.removeItem('nutri_calorieEntries');
-       localStorage.removeItem('nutri_calorieTotal');
-       setLoggedEntries([]);
-       setTotalCalories(0);
-       localStorage.setItem('nutri_lastCalorieEntryDate', today);
-     } else {
-       if (savedEntries) {
-         setLoggedEntries(JSON.parse(savedEntries));
-       }
-       if (savedTotal) {
-         setTotalCalories(parseInt(savedTotal, 10));
-       }
-     }
-
-     // Set goal from localStorage or default
-     setCalorieGoal(savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL);
-
-     setIsLoading(false);
-   }, []);
-
-   // Save data whenever entries or total change
-   React.useEffect(() => {
-     if (!isLoading) {
-       localStorage.setItem('nutri_calorieEntries', JSON.stringify(loggedEntries));
-       localStorage.setItem('nutri_calorieTotal', totalCalories.toString());
-       // No need to save goal here, it's set in register/settings
-     }
-   }, [loggedEntries, totalCalories, isLoading]);
 
   function onSubmit(values: CalorieEntry) {
-    const newEntry: LoggedEntry = { ...values, id: Date.now().toString() };
+    const newEntry: LoggedEntry = { ...values, id: Date.now().toString(), date: todayStr };
     setLoggedEntries((prev) => [newEntry, ...prev]);
     setTotalCalories((prev) => prev + values.calories);
     toast({
@@ -139,7 +165,12 @@ export default function CaloriesPage() {
 
 
   return (
-    <div className="container mx-auto max-w-md p-4">
+    <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding-bottom */}
+      <div className="mb-4">
+         <Button variant="outline" asChild>
+             <Link href="/home">← Back to Home</Link>
+         </Button>
+       </div>
       <h1 className="mb-6 text-center text-2xl font-bold">
         Calorie Tracker
       </h1>
@@ -166,7 +197,7 @@ export default function CaloriesPage() {
       <Card className="mb-6 shadow-lg">
         <CardHeader>
           <CardTitle>Log New Entry</CardTitle>
-          <CardDescription>Add a food item you consumed.</CardDescription>
+          <CardDescription>Add a food item you consumed today.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,6 +44,17 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+     /* Calendar modifier colors (Light Theme) */
+    --cal-goal-met-bg: 142.1 76.2% 90.2%; /* Light Green */
+    --cal-goal-met-border: 142.1 70.6% 45.3%; /* Darker Green */
+    --cal-goal-exceeded-bg: 0 84.2% 93.2%; /* Light Red */
+    --cal-goal-exceeded-border: 0 72.2% 50.6%; /* Darker Red */
+    --water-goal-met-indicator: 210 100% 56.1%; /* Bright Blue (Primary) */
+    --water-goal-partial-indicator: 48 96% 61%; /* Yellow/Orange (Accent) */
+    --fasting-active-color: 262 84% 50%; /* Purple */
+    --fasting-active-bg: 262 80% 94%; /* Light Purple */
+    --fasting-active-border: 262 70% 60%; /* Darker Purple */
   }
   .dark {
     /* Dark Theme - Adjusted slightly based on image */
@@ -79,6 +91,17 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+     /* Calendar modifier colors (Dark Theme) */
+    --cal-goal-met-bg: 142.1 76.2% 18.2%; /* Dark Green */
+    --cal-goal-met-border: 142.1 70.6% 35.3%; /* Medium Green */
+    --cal-goal-exceeded-bg: 0 84.2% 20.2%; /* Dark Red */
+    --cal-goal-exceeded-border: 0 72.2% 40.6%; /* Medium Red */
+    --water-goal-met-indicator: 210 100% 56.1%; /* Bright Blue (Primary) */
+    --water-goal-partial-indicator: 48 96% 61%; /* Yellow/Orange (Accent) */
+    --fasting-active-color: 262 84% 70%; /* Lighter Purple */
+    --fasting-active-bg: 262 80% 20%; /* Dark Purple */
+    --fasting-active-border: 262 70% 40%; /* Medium Purple */
   }
 }
 
@@ -89,6 +112,36 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Apply Calendar Modifier Styles */
+  .rdp-day_selected { @apply !bg-primary !text-primary-foreground; } /* Ensure selected day overrides others */
+  .cal-goal-met { background-color: hsl(var(--cal-goal-met-bg)); border: 1px solid hsl(var(--cal-goal-met-border)); font-weight: bold; }
+  .cal-goal-exceeded { background-color: hsl(var(--cal-goal-exceeded-bg)); border: 1px solid hsl(var(--cal-goal-exceeded-border)); }
+  .water-goal-met { position: relative; }
+  .water-goal-met::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background-color: hsl(var(--water-goal-met-indicator)); }
+  .water-goal-partial { position: relative; }
+  .water-goal-partial::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background-color: hsl(var(--water-goal-partial-indicator)); }
+  .fasting-active { background-color: hsl(var(--fasting-active-bg)); border: 1px solid hsl(var(--fasting-active-border)); color: hsl(var(--fasting-active-color)); font-style: italic; }
+
+  /* High specificity to override default day button styles ONLY when modifier is active */
+  .rdp-button[disabled] { /* Prevent hover effects on disabled days */
+      pointer-events: none;
+  }
+  .rdp-button:not([disabled]).cal-goal-met,
+  .rdp-button:not([disabled]).cal-goal-exceeded,
+  .rdp-button:not([disabled]).fasting-active {
+     &:hover { /* Optional: Tone down hover effect on modified days */
+        background-color: inherit !important; /* Inherit the modifier background */
+     }
+  }
+  .rdp-button.rdp-day_selected.cal-goal-met,
+  .rdp-button.rdp-day_selected.cal-goal-exceeded,
+  .rdp-button.rdp-day_selected.fasting-active {
+      /* Ensure selected style takes precedence */
+      @apply !bg-primary !text-primary-foreground;
+      border-color: hsl(var(--primary)); /* Match border */
+  }
+
 }
 
 /* Additional global styles for layout */
