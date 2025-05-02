@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Search, Filter, Heart, X } from 'lucide-react';
+import { Search, Filter, Heart, X, Clock, Flame } from 'lucide-react'; // Added Clock and Flame
 import { sampleRecipes, sampleCuisines, recipeCategories, Recipe, RecipeCategory } from './recipe-data'; // Adjust path as necessary
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -103,6 +103,7 @@ export default function RecipesPage() {
 
   const handleCategoryClick = (category: RecipeCategory) => {
     setSelectedCategory(prev => (prev === category ? null : category)); // Toggle selection
+    setShowOnlyFavorites(false); // Turn off favorite filter when category is clicked
   };
 
   const handleShowFavorites = () => {
@@ -145,7 +146,7 @@ export default function RecipesPage() {
             size="icon"
             onClick={handleShowFavorites}
             aria-label={showOnlyFavorites ? "Show All Recipes" : "Show Favorite Recipes"}
-            className={cn(showOnlyFavorites && "text-red-500 border-red-500")}
+            className={cn(showOnlyFavorites && "text-red-500 border-red-500")} // Use theme colors
         >
             <Heart className={cn("h-5 w-5", showOnlyFavorites && "fill-current")} />
          </Button>
@@ -256,69 +257,74 @@ export default function RecipesPage() {
 
         {/* Recipe Detail Modal */}
          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0"> {/* Remove default padding */}
                {selectedRecipe && (
                  <>
-                    <DialogHeader className="relative pr-10"> {/* Add padding for close button */}
-                        <Image
-                        src={selectedRecipe.imageUrl}
-                        alt={selectedRecipe.name}
-                        width={600}
-                        height={300}
-                        className="aspect-video object-cover w-full rounded-t-lg -mt-6 -mx-6 mb-4" // Adjust margins
-                        data-ai-hint={selectedRecipe.imageHint}
-                        />
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                                "absolute top-8 right-8 rounded-full bg-black/30 hover:bg-black/50 text-white z-10", // Position higher
-                                selectedRecipe.isFavorite && "text-red-500 bg-black/50"
-                                )}
-                            onClick={() => toggleFavorite(selectedRecipe.id)}
-                            aria-label={selectedRecipe.isFavorite ? "Remove from favorites" : "Add to favorites"}
-                            >
-                            <Heart className={cn("h-5 w-5", selectedRecipe.isFavorite && "fill-current")} />
-                         </Button>
-                        <DialogTitle className="text-2xl font-bold">{selectedRecipe.name}</DialogTitle>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                            <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {selectedRecipe.duration} min
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Flame className="h-4 w-4" />
-                                {selectedRecipe.calories} kcal
-                            </span>
-                        </div>
-                         {selectedRecipe.description && (
-                             <DialogDescription className="mt-2 text-base">
-                                {selectedRecipe.description}
-                             </DialogDescription>
-                         )}
-                          <DialogClose
-                            onClick={closeRecipeModal}
-                            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground bg-background/50 hover:bg-background/80 p-1" // Added styling for visibility
-                           >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                          </DialogClose>
+                    <DialogHeader className="relative p-0"> {/* Remove default padding */}
+                        <div className="relative"> {/* Container for image and buttons */}
+                            <Image
+                            src={selectedRecipe.imageUrl}
+                            alt={selectedRecipe.name}
+                            width={600}
+                            height={300}
+                            className="aspect-video object-cover w-full rounded-t-lg mb-0" // Remove bottom margin
+                            data-ai-hint={selectedRecipe.imageHint}
+                            />
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "absolute top-4 right-14 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10", // Position favorite button
+                                    selectedRecipe.isFavorite && "text-destructive bg-black/60" // Use destructive color from theme
+                                    )}
+                                onClick={() => toggleFavorite(selectedRecipe.id)}
+                                aria-label={selectedRecipe.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                                >
+                                <Heart className={cn("h-5 w-5", selectedRecipe.isFavorite && "fill-current")} />
+                             </Button>
+                              <DialogClose
+                                onClick={closeRecipeModal}
+                                className="absolute top-4 right-4 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm z-10 p-1 opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" // Consistent styling with favorite button
+                               >
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Close</span>
+                              </DialogClose>
+                         </div>
+                         <div className="p-6"> {/* Add padding for text content */}
+                            <DialogTitle className="text-2xl font-bold mb-1">{selectedRecipe.name}</DialogTitle>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 mb-3">
+                                <span className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    {selectedRecipe.duration} min
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <Flame className="h-4 w-4" />
+                                    {selectedRecipe.calories} kcal
+                                </span>
+                            </div>
+                             {selectedRecipe.description && (
+                                 <DialogDescription className="text-base text-foreground/90"> {/* Slightly less muted */}
+                                    {selectedRecipe.description}
+                                 </DialogDescription>
+                             )}
+                         </div>
+
                     </DialogHeader>
-                    <ScrollArea className="flex-grow overflow-y-auto pr-6 -mr-6"> {/* Make content scrollable */}
-                        <div className="grid md:grid-cols-2 gap-6 mt-4">
+                    <ScrollArea className="flex-grow overflow-y-auto px-6 pb-6 -mt-2"> {/* Add padding and adjust margin */}
+                        <div className="grid md:grid-cols-2 gap-x-8 gap-y-6"> {/* Increased gap */}
                         <div>
-                            <h3 className="font-semibold mb-2 text-lg">Ingredients</h3>
-                            <ul className="list-disc list-inside space-y-1 text-sm">
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Ingredients</h3> {/* Added border */}
+                            <ul className="list-disc list-outside pl-5 space-y-1.5 text-sm"> {/* Adjusted list style and spacing */}
                             {selectedRecipe.ingredients.map((item, index) => (
                                 <li key={index}>{item}</li>
                             ))}
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold mb-2 text-lg">Procedure</h3>
-                            <ol className="list-decimal list-inside space-y-2 text-sm">
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Procedure</h3> {/* Added border */}
+                            <ol className="list-decimal list-outside pl-5 space-y-2 text-sm"> {/* Adjusted list style and spacing */}
                             {selectedRecipe.procedure.map((step, index) => (
-                                <li key={index}>{step}</li>
+                                <li key={index} className="pl-1">{step}</li> // Added slight padding
                             ))}
                             </ol>
                         </div>

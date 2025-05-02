@@ -12,17 +12,25 @@ import { cn } from '@/lib/utils';
 interface RecipeCardProps {
   recipe: Recipe;
   onToggleFavorite: (id: string) => void;
+  onClick: () => void; // Add onClick handler for the card itself
   className?: string;
 }
 
-export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardProps) {
+export function RecipeCard({ recipe, onToggleFavorite, onClick, className }: RecipeCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking the heart
     onToggleFavorite(recipe.id);
   };
 
   return (
-    <Card className={cn("w-[250px] shrink-0 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer", className)}>
+    <Card
+        className={cn("w-[250px] shrink-0 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer", className)}
+        onClick={onClick} // Add onClick to the card
+        role="button" // Add role for accessibility
+        aria-label={`View recipe details for ${recipe.name}`} // Add aria-label
+        tabIndex={0} // Make card focusable
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }} // Allow activation with keyboard
+        >
       <CardHeader className="p-0 relative">
         <Image
           src={recipe.imageUrl}
@@ -30,7 +38,8 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
           width={250}
           height={150}
           className="aspect-[3/2] object-cover w-full"
-          data-ai-hint={recipe.imageHint}
+          data-ai-hint={recipe.imageHint} // Use imageHint here
+          priority={recipe.isPopular} // Prioritize loading popular recipe images slightly
         />
          <Button
             variant="ghost"
