@@ -176,9 +176,10 @@ export default function HomePage() {
 
 
   // Display Loading state - Separate return for loading state
-  if (isLoading) {
+  // Only render loading state on client after mount
+  if (typeof window === 'undefined' || isLoading) {
     return (
-        <div className="container mx-auto max-w-md p-4 pb-20 flex items-center justify-center min-h-screen">
+        <div className="container mx-auto max-w-md p-4 pb-20 flex items-center justify-center min-h-[calc(100vh-5rem)]"> {/* Adjust height to avoid overlap */}
             <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
     );
@@ -187,7 +188,7 @@ export default function HomePage() {
  // Main component return when not loading
   return (
     <div className="container mx-auto max-w-md p-4 pb-20"> {/* Mobile-first max-width */}
-      <h1 className="mb-6 text-center text-3xl font-bold">Dashboard</h1>
+      <h1 className="mb-6 text-center text-3xl font-bold">NutriTrack Go</h1> {/* Changed title */}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
