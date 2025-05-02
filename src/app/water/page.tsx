@@ -150,13 +150,21 @@ export default function WaterPage() {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort ascending for chart
         .slice(-7); // Keep last 7 entries
 
-    setHistory(updatedHistory); // Update state for chart
+    // This state update was potentially causing infinite loops if history was a dependency
+    // setHistory(updatedHistory);
+     const currentHistoryJson = JSON.stringify(history);
+     const updatedHistoryJson = JSON.stringify(updatedHistory);
+     if (currentHistoryJson !== updatedHistoryJson) {
+         setHistory(updatedHistory); // Only update if the history actually changed
+     }
+
+
     localStorage.setItem('nutri_waterHistory', JSON.stringify(updatedHistory));
 
     // Update the separate daily record for the calendar view
     updateDailyWaterRecord(todayStr, currentIntake, dailyGoal);
 
-  }, [currentIntake, dailyGoal, isLoading, todayStr, history]); // history removed from deps to avoid loop, managed internally
+  }, [currentIntake, dailyGoal, isLoading, todayStr]); // Removed history from dependencies
 
 
   const form = useForm<AddWaterForm>({
@@ -197,7 +205,7 @@ export default function WaterPage() {
 
   // Prepare data for the chart (last 7 days including today if available)
    const chartData = React.useMemo(() => {
-       // History is already sorted and limited in the save effect
+       // History should be sorted ascending now
        return history.map(entry => ({
            date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), // Format date for display
            ml: entry.amount
@@ -216,7 +224,8 @@ export default function WaterPage() {
     <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding-bottom */}
        <div className="mb-4">
          <Button variant="outline" asChild>
-             <Link href="/">← Back to Home</Link> {/* Changed Link to root */}
+             {/* Ensure Link is the direct child when using asChild */}
+             <Link href="/">← Back to Home</Link>
          </Button>
        </div>
       <h1 className="mb-6 text-center text-2xl font-bold">
