@@ -138,15 +138,17 @@ const ChartTooltipContent = React.forwardRef<
         return null
       }
 
-      const [item] = payload
-      const key = `${labelKey || item.dataKey || item.name || "value"}`
-      const itemConfig = getPayloadConfigFromPayload(config, item, key)
+      const item = payload[0];
+      // Ensure item and necessary properties exist
+      const key = `${labelKey || item?.dataKey || item?.name || 'value'}`;
+      const itemConfig = getPayloadConfigFromPayload(config, item, key);
+      // Use label prop value if it's a string and not a key in config
       const value =
-        !labelKey && typeof label === "string"
-          ? config[label as keyof typeof config]?.label || label
-          : itemConfig?.label
+        !labelKey && typeof label === 'string' && !(label in config)
+          ? label
+          : itemConfig?.label;
 
-      if (labelFormatter) {
+      if (labelFormatter && value !== undefined) { // Check if value is defined
         return (
           <div className={cn("font-medium", labelClassName)}>
             {labelFormatter(value, payload)}
@@ -186,13 +188,14 @@ const ChartTooltipContent = React.forwardRef<
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
           {payload.map((item, index) => {
-            const key = `${nameKey || item.name || item.dataKey || "value"}`
+             // Ensure item and necessary properties exist
+            const key = `${nameKey || item?.name || item?.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const indicatorColor = color || item?.payload?.fill || item?.color
 
             return (
               <div
-                key={item.dataKey}
+                key={item?.dataKey ?? `item-${index}`} // Use index as fallback key
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
@@ -205,7 +208,7 @@ const ChartTooltipContent = React.forwardRef<
                     {itemConfig?.icon ? (
                       <itemConfig.icon />
                     ) : (
-                      !hideIndicator && (
+                      !hideIndicator && indicatorColor && ( // Check if indicatorColor is defined
                         <div
                           className={cn(
                             "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
@@ -235,10 +238,10 @@ const ChartTooltipContent = React.forwardRef<
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
                         <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name}
+                          {itemConfig?.label || item?.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item?.value !== undefined && item.value !== null && ( // Check for null/undefined
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.value.toLocaleString()}
                         </span>
@@ -286,12 +289,13 @@ const ChartLegendContent = React.forwardRef<
         )}
       >
         {payload.map((item) => {
-          const key = `${nameKey || item.dataKey || "value"}`
+           // Ensure item and necessary properties exist
+          const key = `${nameKey || item?.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
           return (
             <div
-              key={item.value}
+              key={item?.value ?? `legend-${key}`} // Fallback key
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
               )}
@@ -299,12 +303,14 @@ const ChartLegendContent = React.forwardRef<
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
               ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
+                 item?.color && ( // Check if color exists
+                    <div
+                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    style={{
+                        backgroundColor: item.color,
+                    }}
+                    />
+                 )
               )}
               {itemConfig?.label}
             </div>
@@ -326,22 +332,24 @@ function getPayloadConfigFromPayload(
     return undefined
   }
 
+   // Check if 'payload' key exists and is an object
   const payloadPayload =
     "payload" in payload &&
     typeof payload.payload === "object" &&
     payload.payload !== null
       ? payload.payload
-      : undefined
+      : undefined;
 
   let configLabelKey: string = key
 
+   // Check if 'key' exists in payload and is a string
   if (
     key in payload &&
     typeof payload[key as keyof typeof payload] === "string"
   ) {
     configLabelKey = payload[key as keyof typeof payload] as string
   } else if (
-    payloadPayload &&
+    payloadPayload && // Ensure payloadPayload exists
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
   ) {
