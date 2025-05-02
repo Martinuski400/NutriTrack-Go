@@ -37,7 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress'; // Import Progress
 import Link from 'next/link'; // Import Link
 
-const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'] as const;
+const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Recipe'] as const; // Added 'Recipe'
 
 const calorieEntrySchema = z.object({
   mealType: z.enum(mealTypes, {
@@ -75,6 +75,8 @@ export default function CaloriesPage() {
       const dailyRecords = JSON.parse(localStorage.getItem('nutri_daily_calories') || '{}');
       dailyRecords[date] = { total, goal };
       localStorage.setItem('nutri_daily_calories', JSON.stringify(dailyRecords));
+       // Dispatch custom event for HomePage update
+      window.dispatchEvent(new CustomEvent('caloriesUpdated', { detail: { total, goal } }));
     };
     // --- End Persistence ---
 
@@ -92,6 +94,7 @@ export default function CaloriesPage() {
      const savedTotal = localStorage.getItem('nutri_calorieTotal');
      const savedGoal = localStorage.getItem('nutri_calorieGoal'); // Get goal from storage
      const lastEntryDate = localStorage.getItem('nutri_lastCalorieEntryDate');
+     const savedCalculatedGoal = localStorage.getItem('nutri_calculatedCalorieGoal');
 
      let currentTotal = 0;
      let currentEntries: LoggedEntry[] = [];
@@ -103,9 +106,14 @@ export default function CaloriesPage() {
        localStorage.setItem('nutri_lastCalorieEntryDate', currentDateStr);
      } else {
        if (savedEntries) {
-          const parsedEntries = JSON.parse(savedEntries);
-          // Ensure loaded entries are only for today
-          currentEntries = parsedEntries.filter((entry: LoggedEntry) => entry.date === currentDateStr);
+          try {
+            const parsedEntries = JSON.parse(savedEntries);
+            // Ensure loaded entries are only for today
+            currentEntries = parsedEntries.filter((entry: LoggedEntry) => entry.date === currentDateStr);
+          } catch (e) {
+             console.error("Error parsing calorie entries:", e);
+             currentEntries = []; // Reset on error
+          }
        }
        if (savedTotal) {
          currentTotal = parseInt(savedTotal, 10);
@@ -115,8 +123,14 @@ export default function CaloriesPage() {
      setLoggedEntries(currentEntries);
      setTotalCalories(currentTotal);
 
-     // Set goal from localStorage or default
-     const currentGoal = savedGoal ? parseInt(savedGoal, 10) : DEFAULT_CALORIE_GOAL;
+     // Set goal from localStorage (manual or calculated) or default
+     let currentGoal = DEFAULT_CALORIE_GOAL;
+     if (savedGoal) {
+         currentGoal = parseInt(savedGoal, 10);
+     } else if (savedCalculatedGoal) {
+         currentGoal = parseInt(savedCalculatedGoal, 10);
+     }
+
      setCalorieGoal(currentGoal);
       // Update today's record on initial load too
      updateDailyCalorieRecord(currentDateStr, currentTotal, currentGoal);
@@ -180,7 +194,8 @@ export default function CaloriesPage() {
     <div className="container mx-auto max-w-md p-4 pb-20"> {/* Added padding-bottom */}
       <div className="mb-4">
          <Button variant="outline" asChild>
-             <Link href="/">← Back to Home</Link> {/* Changed Link to root */}
+             {/* Ensure Link is the direct child when using asChild */}
+             <Link href="/">← Back to Home</Link>
          </Button>
        </div>
       <h1 className="mb-6 text-center text-2xl font-bold">
@@ -306,4 +321,3 @@ export default function CaloriesPage() {
     </div>
   );
 }
-
