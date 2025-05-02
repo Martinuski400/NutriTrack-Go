@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Heart, Clock, Flame } from 'lucide-react';
+import { Heart, Clock, Flame, Users } from 'lucide-react'; // Added Users import
 import { Recipe } from '@/app/recipes/recipe-data'; // Assuming data structure is defined here
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
