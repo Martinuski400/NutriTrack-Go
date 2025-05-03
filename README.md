@@ -2,7 +2,7 @@
 
 **Tu compañero personal de nutrición, sin necesidad de conexión ni registro.**
 
-<img src="https://github.com/Martinuski400/NutriTrack-Go/blob/master/PlaceHolder%20NutriTrack.jpg)" alt="NutriTrack Go Screenshot" width="600" />
+<img src="https://github.com/Martinuski400/NutriTrack-Go/blob/master/NutriTrackPlaceHolder.jpg" alt="NutriTrack Go Screenshot" width="600" />
 
 ---
 
